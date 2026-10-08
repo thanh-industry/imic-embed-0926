@@ -29,6 +29,8 @@
 #include "app_uart.h"
 #include "app_adc.h"
 #include "app_cmd.h"
+#include "w25qxx.h"
+#include "spi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -195,31 +197,16 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartSensorTask */
-#include "bme280.h"
-#include "app_log.h"
-
 void StartSensorTask(void *argument)
 {
-    uint8_t ok = 0;
-    int32_t t;
-
-    for (;;)
-    {
-        if (!ok) {
-            ok = (BME280_Init() == HAL_OK);
-            if (ok) LOG_Post(LOG_INFO, 0, "BMP280 detected");
-        }
-
-        if (ok && BME280_ReadTemp_x10(&t) == HAL_OK) {
-            LOG_Post(LOG_I2C_TEMP, t, "");
-        } else {
-            ok = 0;
-            LOG_Post(LOG_ERROR, 0, "I2C sensor timeout");
-        }
-        osDelay(1000);
-    }
-}
+  /* USER CODE BEGIN StartSensorTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
   /* USER CODE END StartSensorTask */
+}
 
 /* USER CODE BEGIN Header_StartSPITask */
 /**
@@ -228,15 +215,29 @@ void StartSensorTask(void *argument)
 * @retval None
 */
 /* USER CODE END Header_StartSPITask */
+#include "w25qxx.h"
+#include "spi.h"
+
 void StartSPITask(void *argument)
 {
-  /* USER CODE BEGIN StartSPITask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartSPITask */
+    uint8_t  mfr = 0;
+    uint16_t dev = 0;
+    uint8_t  ok  = (W25_Init(&hspi1) == HAL_OK);
+
+    W25_ReadId(&mfr, &dev);
+    LOG_PostWait(LOG_SPI_ID, ((int32_t)mfr << 16) | dev, "");
+
+    if (ok && W25_SelfTest() == HAL_OK) {
+        LOG_PostWait(LOG_INFO, 0, "SPI flash write/read test OK");
+    } else {
+        ok = 0;
+        LOG_PostWait(LOG_ERROR, 0, "SPI flash test failed");
+    }
+    /* TODO: ghi biến ok vào struct dùng chung (có mutex) cho lệnh status */
+
+    for (;;) {
+        osDelay(1000);
+    }
 }
 
 /* USER CODE BEGIN Header_StartADCTask */
