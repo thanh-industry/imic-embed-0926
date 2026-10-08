@@ -150,7 +150,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the queue(s) */
   /* creation of LogQueue */
-  LogQueueHandle = osMessageQueueNew (16, sizeof(uint32_t), &LogQueue_attributes);
+  LogQueueHandle = osMessageQueueNew (16, sizeof(LogMsg_t), &LogQueue_attributes);
 
   /* creation of CmdRxQueue */
   CmdRxQueueHandle = osMessageQueueNew (32, sizeof(uint8_t), &CmdRxQueue_attributes);
@@ -250,10 +250,7 @@ void StartUARTTask(void *argument)
 {
   /* USER CODE BEGIN StartUARTTask */
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	APP_UART_TaskLoop();
   /* USER CODE END StartUARTTask */
 }
 
@@ -267,11 +264,12 @@ void StartUARTTask(void *argument)
 void StartCommandTask(void *argument)
 {
   /* USER CODE BEGIN StartCommandTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	uint8_t ch;
+	  for (;;) {
+	    if (osMessageQueueGet(CmdRxQueueHandle, &ch, NULL, osWaitForever) == osOK) {
+	      LOG_Post(LOG_INFO, 0, "RX byte received");
+	    }
+	  }
   /* USER CODE END StartCommandTask */
 }
 
