@@ -195,16 +195,31 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartSensorTask */
+#include "bme280.h"
+#include "app_log.h"
+
 void StartSensorTask(void *argument)
 {
-  /* USER CODE BEGIN StartSensorTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartSensorTask */
+    uint8_t ok = 0;
+    int32_t t;
+
+    for (;;)
+    {
+        if (!ok) {
+            ok = (BME280_Init() == HAL_OK);
+            if (ok) LOG_Post(LOG_INFO, 0, "BMP280 detected");
+        }
+
+        if (ok && BME280_ReadTemp_x10(&t) == HAL_OK) {
+            LOG_Post(LOG_I2C_TEMP, t, "");
+        } else {
+            ok = 0;
+            LOG_Post(LOG_ERROR, 0, "I2C sensor timeout");
+        }
+        osDelay(1000);
+    }
 }
+  /* USER CODE END StartSensorTask */
 
 /* USER CODE BEGIN Header_StartSPITask */
 /**
@@ -262,9 +277,9 @@ void StartUARTTask(void *argument)
 /* USER CODE END Header_StartCommandTask */
 void StartCommandTask(void *argument)
 {
-	/* USER CODE BEGIN StartCommandTask */
+  /* USER CODE BEGIN StartCommandTask */
 	    	  APP_CMD_TaskLoop();
-	/* USER CODE END StartCommandTask */
+  /* USER CODE END StartCommandTask */
 }
 
 /* Private application code --------------------------------------------------*/
