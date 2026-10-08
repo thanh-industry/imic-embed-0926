@@ -25,7 +25,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "app_log.h"
+#include "app_uart.h"
 #include "app_adc.h"
+#include "app_cmd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -259,14 +262,9 @@ void StartUARTTask(void *argument)
 /* USER CODE END Header_StartCommandTask */
 void StartCommandTask(void *argument)
 {
-  /* USER CODE BEGIN StartCommandTask */
-	uint8_t ch;
-	  for (;;) {
-	    if (osMessageQueueGet(CmdRxQueueHandle, &ch, NULL, osWaitForever) == osOK) {
-	      LOG_Post(LOG_INFO, 0, "RX byte received");
-	    }
-	  }
-  /* USER CODE END StartCommandTask */
+	/* USER CODE BEGIN StartCommandTask */
+	    	  APP_CMD_TaskLoop();
+	/* USER CODE END StartCommandTask */
 }
 
 /* Private application code --------------------------------------------------*/
