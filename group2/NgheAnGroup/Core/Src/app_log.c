@@ -36,6 +36,8 @@ int LOG_Format(const LogMsg_t *m, char *buf, int len)
     case LOG_ADC_VOLT:
         return snprintf(buf, len, "[ADC] Voltage = %ld.%02ld V\r\n",
                         (long)(m->value / 1000), (long)((m->value % 1000) / 10));
+    case LOG_ADC_SOUND:
+        return snprintf(buf, len, "[ADC] Sound level = %ld mV (p-p)\r\n", (long)m->value);
     default:
         return 0;
     }

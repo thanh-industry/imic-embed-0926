@@ -16,7 +16,8 @@ typedef enum {
     LOG_I2C_TEMP,   /* value = nhiet do, don vi 0.1 C */
     LOG_I2C_PRESS,  /* value = ap suat, don vi Pa */
     LOG_SPI_ID,     /* value = Device ID */
-    LOG_ADC_VOLT    /* value = dien ap, don vi mV */
+    LOG_ADC_VOLT,    /* value = dien ap, don vi mV */
+	LOG_ADC_SOUND   /* value = bien do dinh-dinh, mV */
 } LogType_t;
 
 typedef struct {

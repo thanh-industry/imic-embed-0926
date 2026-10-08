@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "app_adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -231,11 +231,7 @@ void StartSPITask(void *argument)
 void StartADCTask(void *argument)
 {
   /* USER CODE BEGIN StartADCTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	  APP_ADC_TaskLoop();
   /* USER CODE END StartADCTask */
 }
 
