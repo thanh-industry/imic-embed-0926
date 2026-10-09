@@ -60,6 +60,7 @@ void APP_ADC_TaskLoop(void)
             }
             LOG_Post(LOG_ADC_VOLT, avg_mv, 0);
             LOG_Post(LOG_ADC_SOUND, pp_mv, 0);
+
         } else {
             LOG_Post(LOG_ERROR, 0, "ADC read timeout");
         }

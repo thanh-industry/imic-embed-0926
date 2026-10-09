@@ -4,7 +4,7 @@
 
 extern osMessageQueueId_t LogQueueHandle;
 
-volatile uint8_t g_log_periodic = 0;
+volatile uint8_t g_log_periodic = 1;
 
 void LOG_Post(LogType_t type, int32_t value, const char *text)
 {

@@ -20,15 +20,15 @@ static int get_snapshot(SystemData_t *s)
 }
 
 static void cmd_help(void)
+
 {
-    LOG_PostWait(LOG_RAW, 0,
-        "Commands:\r\n"
-        "  help     - show this list\r\n"
-        "  status   - system status\r\n"
-        "  sensor   - sensor data\r\n"
-        "  voltage  - ADC voltage\r\n"
-        "  version  - firmware version\r\n"
-        "  log on|off - periodic log\r\n");
+    LOG_PostWait(LOG_RAW, 0, "Commands:\r\n");
+    LOG_PostWait(LOG_RAW, 0, "  help     - show this list\r\n");
+    LOG_PostWait(LOG_RAW, 0, "  status   - system status\r\n");
+    LOG_PostWait(LOG_RAW, 0, "  sensor   - sensor data\r\n");
+    LOG_PostWait(LOG_RAW, 0, "  voltage  - ADC voltage\r\n");
+    LOG_PostWait(LOG_RAW, 0, "  version  - firmware version\r\n");
+    LOG_PostWait(LOG_RAW, 0, "  log on|off - periodic log\r\n");
 }
 
 static void cmd_version(void)
@@ -54,7 +54,7 @@ static void cmd_sensor(void)
 
     if (s.i2c_ok) {
         LOG_PostWait(LOG_FMT_TEMP, s.temp_x10, "Temperature : ");
-        LOG_PostWait(LOG_FMT_PA,   s.press_pa, "Pressure    : ");
+
     } else {
         LOG_PostWait(LOG_RAW, 0, "I2C sensor  : N/A\r\n");
     }

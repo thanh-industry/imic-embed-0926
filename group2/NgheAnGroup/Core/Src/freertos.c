@@ -26,11 +26,13 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "app_log.h"
+#include "bme280.h"
 #include "app_uart.h"
 #include "app_adc.h"
 #include "app_cmd.h"
 #include "w25qxx.h"
 #include "spi.h"
+#include "app_system.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -142,7 +144,7 @@ void MX_FREERTOS_Init(void) {
   SystemDataMutexHandle = osMutexNew(&SystemDataMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
+
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
@@ -197,16 +199,40 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartSensorTask */
+
 void StartSensorTask(void *argument)
 {
   /* USER CODE BEGIN StartSensorTask */
-  /* Infinite loop */
+  int32_t t_x10 = 0;
+  uint8_t ok = (BME280_Init() == HAL_OK);
+
+  if (ok) LOG_PostWait(LOG_INFO, 0, "I2C sensor init OK");
+  else    LOG_PostWait(LOG_ERROR, 0, "I2C sensor init failed");
+
   for(;;)
   {
-    osDelay(1);
+    if (!ok) ok = (BME280_Init() == HAL_OK);
+
+    if (ok && BME280_ReadTemp_x10(&t_x10) == HAL_OK) {
+      if (osMutexAcquire(SystemDataMutexHandle, 50) == osOK) {
+        g_sys.temp_x10 = t_x10;
+        g_sys.i2c_ok   = 1;
+        osMutexRelease(SystemDataMutexHandle);
+      }
+      LOG_Post(LOG_I2C_TEMP, t_x10, "");
+    } else {
+      ok = 0;
+      if (osMutexAcquire(SystemDataMutexHandle, 50) == osOK) {
+        g_sys.i2c_ok = 0;
+        osMutexRelease(SystemDataMutexHandle);
+      }
+      LOG_Post(LOG_ERROR, 0, "I2C sensor read failed");
+    }
+    osDelay(1000);
   }
+ }
   /* USER CODE END StartSensorTask */
-}
+
 
 /* USER CODE BEGIN Header_StartSPITask */
 /**
@@ -215,29 +241,34 @@ void StartSensorTask(void *argument)
 * @retval None
 */
 /* USER CODE END Header_StartSPITask */
-#include "w25qxx.h"
-#include "spi.h"
-
 void StartSPITask(void *argument)
 {
-    uint8_t  mfr = 0;
-    uint16_t dev = 0;
-    uint8_t  ok  = (W25_Init(&hspi1) == HAL_OK);
+  /* USER CODE BEGIN StartSPITask */
+  uint8_t  mfr = 0;
+  uint16_t dev = 0;
+  uint8_t  ok  = (W25_Init(&hspi1) == HAL_OK);
 
-    W25_ReadId(&mfr, &dev);
-    LOG_PostWait(LOG_SPI_ID, ((int32_t)mfr << 16) | dev, "");
+  W25_ReadId(&mfr, &dev);
+  LOG_PostWait(LOG_SPI_ID, ((int32_t)mfr << 16) | dev, "");
 
-    if (ok && W25_SelfTest() == HAL_OK) {
-        LOG_PostWait(LOG_INFO, 0, "SPI flash write/read test OK");
-    } else {
-        ok = 0;
-        LOG_PostWait(LOG_ERROR, 0, "SPI flash test failed");
-    }
-    /* TODO: ghi biến ok vào struct dùng chung (có mutex) cho lệnh status */
+  if (ok && W25_SelfTest() == HAL_OK) {
+    LOG_PostWait(LOG_INFO, 0, "SPI flash write/read test OK");
+  } else {
+    ok = 0;
+    LOG_PostWait(LOG_ERROR, 0, "SPI flash test failed");
+  }
 
-    for (;;) {
-        osDelay(1000);
-    }
+  if (osMutexAcquire(SystemDataMutexHandle, 50) == osOK) {
+    g_sys.spi_id = ((uint32_t)mfr << 16) | dev;
+    g_sys.spi_ok = ok;
+    osMutexRelease(SystemDataMutexHandle);
+  }
+
+  for(;;)
+  {
+    osDelay(1000);
+  }
+  /* USER CODE END StartSPITask */
 }
 
 /* USER CODE BEGIN Header_StartADCTask */
