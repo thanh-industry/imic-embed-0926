@@ -519,7 +519,7 @@ void StartTask_I2C(void *argument)
   for(;;)
   {
 	LCD_Row_1;
-	sprintf(LCD_buff, "Test LCD: ");
+	sprintf(LCD_buff, "Test LCD Done ");
 	Send_String(LCD_buff);
     osDelay(1000);
   }
