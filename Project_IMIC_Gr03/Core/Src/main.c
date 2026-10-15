@@ -28,7 +28,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
-#include "OLED.h"
+#include "LCD.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -450,12 +450,10 @@ void StartTask_I2C(void *argument)
 {
   /* USER CODE BEGIN StartTask_I2C */
   /* Infinite loop */
-  OLED_Init();
-  OLED_DrawRect(0, 0, 128, 64, 1);
-  OLED_Update_Screen();
+
   for(;;)
   {
-	mPrint("TASK OLED I2C: RUNNING\r\n");
+	mPrint("TASK LCD I2C: RUNNING\r\n");
     osDelay(1000);
   }
   /* USER CODE END StartTask_I2C */

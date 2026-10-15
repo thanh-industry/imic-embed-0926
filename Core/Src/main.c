@@ -28,7 +28,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
-#include "OLED.h"
+#include "LCD.h"
 
 /* USER CODE END Includes */
 
@@ -119,11 +119,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart -> Instance == USART2)
 	{
+		// khoi tao co trang thai chuac co bien nao duoc danh thuc
 		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
 		if (CMD == '\n')
 		{
 			CMD_Index = 0;
+			//
 			vTaskNotifyGiveFromISR(Task_UART2Handle, &xHigherPriorityTaskWoken );
 		}
 		else
@@ -131,15 +133,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 			CMD_Buffer[CMD_Index ++] = CMD;
 		}
-		HAL_UART_Receive_IT(&huart2, &CMD, 1);
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+
 		if(CMD_Index > sizeof(CMD_Buffer))
 		{
 			mPrint("\nNhap lenh command sai! Vui long nhap lai.");
 			CMD_Index = 0;
 			memset(CMD_Buffer,0, sizeof(CMD_Buffer));
 		}
+
+		HAL_UART_Receive_IT(&huart2, &CMD, 1);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
+
 }
 /* USER CODE END PFP */
 
@@ -464,7 +469,12 @@ void StartTask_UART(void *argument)
     	}
     	else if (strcmp(CMD_Buffer,"version") == 0)
     	{
-    		mPrint("Version of Thanh and Hai.");
+    		mPrint("Version of Thanh and Hai.\n");
+    		memset(CMD_Buffer, 0, sizeof(CMD_Buffer));
+    	}
+    	else
+    	{
+    		mPrint("Command Not Found!!!\n");
     		memset(CMD_Buffer, 0, sizeof(CMD_Buffer));
     	}
     }
@@ -503,12 +513,14 @@ void StartTask_I2C(void *argument)
 {
   /* USER CODE BEGIN StartTask_I2C */
   /* Infinite loop */
-  mPrint("TASK OLED I2C: RUNNING\r\n");
-  OLED_Init();
-  OLED_DrawRect(0, 0, 128, 64, 1);
-  OLED_Update_Screen();
+  mPrint("TASK LCD I2C: RUNNING\r\n");
+  LCD_Init();
+  char LCD_buff[20];
   for(;;)
   {
+	LCD_Row_1;
+	sprintf(LCD_buff, "Test LCD: ");
+	Send_String(LCD_buff);
     osDelay(1000);
   }
   /* USER CODE END StartTask_I2C */
