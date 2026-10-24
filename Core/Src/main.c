@@ -29,7 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "LCD.h"
-
+#include "BMP280.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -125,7 +125,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		if (CMD == '\n')
 		{
 			CMD_Index = 0;
-			//
+			// danh thuc task UART de su li chuoi vua nhan
 			vTaskNotifyGiveFromISR(Task_UART2Handle, &xHigherPriorityTaskWoken );
 		}
 		else
@@ -142,6 +142,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		}
 
 		HAL_UART_Receive_IT(&huart2, &CMD, 1);
+		// chuyen sang task UART day de xu ly ngat
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
 
@@ -186,7 +187,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Receive_IT(&huart2, &CMD, 1);
+  LCD_Init();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -352,7 +353,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -423,7 +424,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : PA4 */
   GPIO_InitStruct.Pin = GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -479,6 +480,7 @@ void StartTask_UART(void *argument)
     	}
     }
   }
+  osDelay(1000);
   /* USER CODE END 5 */
 }
 
@@ -489,14 +491,23 @@ void StartTask_UART(void *argument)
 * @retval None
 */
 /* USER CODE END Header_StartTask_SPI */
+uint8_t id;
+double test_T, test_P;
 void StartTask_SPI(void *argument)
 {
   /* USER CODE BEGIN StartTask_SPI */
   /* Infinite loop */
   mPrint("TASK Sensor SPI: RUNNING\r\n");
+  BMP280_Init();
+  id = BMP280_Read(BMP_REG_ID);
   for(;;)
   {
-
+	uint32_t adc_T = BMP280_ADC_T();
+	uint32_t adc_P = BMP280_ADC_P();
+	double T = BMP280_compensate_T_double(adc_T);
+	double P = BMP280_compensate_P_double(adc_P);
+	test_T = T;
+	test_P = P;
     osDelay(1000);
   }
   /* USER CODE END StartTask_SPI */
@@ -514,11 +525,11 @@ void StartTask_I2C(void *argument)
   /* USER CODE BEGIN StartTask_I2C */
   /* Infinite loop */
   mPrint("TASK LCD I2C: RUNNING\r\n");
-  LCD_Init();
+ // LCD_Init();
   char LCD_buff[20];
   for(;;)
   {
-	LCD_Row_1;
+	LCD_Offset_Pos(2, 3);
 	sprintf(LCD_buff, "Test LCD Done ");
 	Send_String(LCD_buff);
     osDelay(1000);

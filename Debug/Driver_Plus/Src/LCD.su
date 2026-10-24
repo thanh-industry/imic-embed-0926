@@ -1,0 +1,5 @@
+../Driver_Plus/Src/LCD.c:4:6:LCD_Send_Cmd	32	static
+../Driver_Plus/Src/LCD.c:19:6:LCD_Send_Data	32	static
+../Driver_Plus/Src/LCD.c:34:6:LCD_Init	8	static
+../Driver_Plus/Src/LCD.c:52:6:Send_String	16	static
+../Driver_Plus/Src/LCD.c:59:6:LCD_Offset_Pos	16	static
