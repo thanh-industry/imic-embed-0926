@@ -225,6 +225,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
+  HAL_UART_Receive_IT(&huart2, &CMD, 1);
   LCD_Init();
   BMP280_Init();
   /* USER CODE END 2 */
@@ -584,7 +585,7 @@ void StartTask_UART(void *argument)
     	}
     }
   }
-  osDelay(1000);
+  //osDelay(1000);
   /* USER CODE END 5 */
 }
 
