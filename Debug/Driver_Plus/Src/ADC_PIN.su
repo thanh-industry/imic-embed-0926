@@ -1,0 +1,2 @@
+../Driver_Plus/Src/ADC_PIN.c:3:10:Task_ADC	16	static
+../Driver_Plus/Src/ADC_PIN.c:14:7:Bit_To_Vol	8	static

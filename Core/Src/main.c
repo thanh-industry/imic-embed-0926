@@ -30,11 +30,24 @@
 #include <stdio.h>
 #include "LCD.h"
 #include "BMP280.h"
+#include "ADC_PIN.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+typedef enum
+{
+	BMP280,
+	Power
+}NameSensor_t;
 
+typedef struct
+{
+	NameSensor_t name;
+	double Tem;
+	double Press;
+	float Vol_Pin;
+}SensorData_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -48,6 +61,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+
 I2C_HandleTypeDef hi2c1;
 
 SPI_HandleTypeDef hspi1;
@@ -66,14 +81,21 @@ osThreadId_t Task_SPIHandle;
 const osThreadAttr_t Task_SPI_attributes = {
   .name = "Task_SPI",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityBelowNormal3,
 };
 /* Definitions for Task_I2C */
 osThreadId_t Task_I2CHandle;
 const osThreadAttr_t Task_I2C_attributes = {
   .name = "Task_I2C",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal2,
+};
+/* Definitions for Task_ADC */
+osThreadId_t Task_ADCHandle;
+const osThreadAttr_t Task_ADC_attributes = {
+  .name = "Task_ADC",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityBelowNormal1,
 };
 /* Definitions for myQueue01 */
 osMessageQueueId_t myQueue01Handle;
@@ -95,9 +117,11 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_ADC1_Init(void);
 void StartTask_UART(void *argument);
 void StartTask_SPI(void *argument);
 void StartTask_I2C(void *argument);
+void StartTask_ADC(void *argument);
 
 /* USER CODE BEGIN PFP */
 static char buff[128];
@@ -145,7 +169,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		// chuyen sang task UART day de xu ly ngat
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
-
+}
+static volatile uint8_t flag_button = 0;
+static volatile uint32_t last_time = 0;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == GPIO_PIN_0)
+	{
+		uint32_t now = HAL_GetTick();
+		if((now - last_time) > 300)
+		{
+			last_time = now;
+			flag_button ^= 1;
+		}
+	}
 }
 /* USER CODE END PFP */
 
@@ -186,8 +223,10 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI1_Init();
   MX_USART2_UART_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   LCD_Init();
+  BMP280_Init();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -210,7 +249,7 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of myQueue01 */
-  myQueue01Handle = osMessageQueueNew (16, sizeof(uint16_t), &myQueue01_attributes);
+  myQueue01Handle = osMessageQueueNew (16, sizeof(SensorData_t), &myQueue01_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -225,6 +264,9 @@ int main(void)
 
   /* creation of Task_I2C */
   Task_I2CHandle = osThreadNew(StartTask_I2C, NULL, &Task_I2C_attributes);
+
+  /* creation of Task_ADC */
+  Task_ADCHandle = osThreadNew(StartTask_ADC, NULL, &Task_ADC_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -294,6 +336,58 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
@@ -421,12 +515,22 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pin : PA4 */
   GPIO_InitStruct.Pin = GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -486,20 +590,20 @@ void StartTask_UART(void *argument)
 
 /* USER CODE BEGIN Header_StartTask_SPI */
 /**
+
 * @brief Function implementing the Task_SPI thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask_SPI */
-uint8_t id;
 double test_T, test_P;
+/* USER CODE END Header_StartTask_SPI */
 void StartTask_SPI(void *argument)
 {
   /* USER CODE BEGIN StartTask_SPI */
   /* Infinite loop */
-  mPrint("TASK Sensor SPI: RUNNING\r\n");
-  BMP280_Init();
-  id = BMP280_Read(BMP_REG_ID);
+  mPrint("TASK Sensor SPI: RUNNING\n");
+  static SensorData_t data;
+  data.name = BMP280;
   for(;;)
   {
 	uint32_t adc_T = BMP280_ADC_T();
@@ -508,6 +612,9 @@ void StartTask_SPI(void *argument)
 	double P = BMP280_compensate_P_double(adc_P);
 	test_T = T;
 	test_P = P;
+	data.Tem = T;
+	data.Press = P;
+	osMessageQueuePut(myQueue01Handle, &data, 0,100);
     osDelay(1000);
   }
   /* USER CODE END StartTask_SPI */
@@ -525,21 +632,65 @@ void StartTask_I2C(void *argument)
   /* USER CODE BEGIN StartTask_I2C */
   /* Infinite loop */
   mPrint("TASK LCD I2C: RUNNING\r\n");
- // LCD_Init();
   char LCD_buff[20];
+  SensorData_t rx_data;
   for(;;)
   {
-	LCD_Offset_Pos(2, 3);
-	sprintf(LCD_buff, "Test LCD Done ");
-	Send_String(LCD_buff);
-    osDelay(1000);
+	if (osMessageQueueGet(myQueue01Handle, &rx_data, 0, osWaitForever) == osOK)
+	{
+			if (flag_button == 0 && rx_data.name == Power)
+			{
+				LCD_Row_1;
+				snprintf(LCD_buff, sizeof(LCD_buff), "Power :  %.2f  V",rx_data.Vol_Pin);
+				Send_String(LCD_buff);
+				memset(LCD_buff, 0, sizeof(LCD_buff));
+				LCD_Row_2;
+			    snprintf(LCD_buff,sizeof(LCD_buff) ,"                ");
+				Send_String(LCD_buff);
+			    memset(LCD_buff,0,sizeof(LCD_buff));
+			}
+			else if (flag_button == 1 && rx_data.name == BMP280)
+			{
+			   LCD_Row_1;
+			   snprintf(LCD_buff,sizeof(LCD_buff) ,"Tem:  %.2f   \xDF""C", rx_data.Tem);
+			   Send_String(LCD_buff);
+			   memset(LCD_buff,0,sizeof(LCD_buff));
+			   LCD_Row_2;
+			   snprintf(LCD_buff,sizeof(LCD_buff) ,"Press: %.2f  bar", rx_data.Press);
+			   Send_String(LCD_buff);
+			   memset(LCD_buff,0,sizeof(LCD_buff));
+			}
+	}
   }
   /* USER CODE END StartTask_I2C */
 }
 
+/* USER CODE BEGIN Header_StartTask_ADC */
+/**
+* @brief Function implementing the Task_ADC thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask_ADC */
+void StartTask_ADC(void *argument)
+{
+  /* USER CODE BEGIN StartTask_ADC */
+  mPrint("TASK ADC PIN: RUNNING\n");
+  /* Infinite loop */
+  static SensorData_t data;
+  data.name = Power;
+  for(;;)
+  {
+	data.Vol_Pin = Bit_To_Vol();
+	osMessageQueuePut(myQueue01Handle, &data, 0, 100);
+    osDelay(3000);
+  }
+  /* USER CODE END StartTask_ADC */
+}
+
 /**
   * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM1 interrupt took place, inside
+  * @note   This function is called  when TIM4 interrupt took place, inside
   * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
   * a global variable "uwTick" used as application time base.
   * @param  htim : TIM handle
@@ -550,7 +701,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM1)
+  if (htim->Instance == TIM4)
   {
     HAL_IncTick();
   }

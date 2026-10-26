@@ -44,7 +44,7 @@ void BMP280_Init()
 	// reset cam bien BMP280
 	BMP280_Write(BMP_REG_RESET, 0xB6);
 
-	osDelay(100);
+	HAL_Delay(100);
 	// cho qua trinh sao chep chac thanh ghi bu 0xA1 - 0x88
 	while((BMP280_Read(BMP_REG_STATUS) & 1) == 1);
 	// lay 24 byte he so hieu chuan va ghep vao  T1,T2,T3,...,P9.
@@ -116,5 +116,5 @@ double BMP280_compensate_P_double(uint32_t adc_P)
 	var1 = ((double) data.dig_P9) * p * p / 2147483648.0;
 	var2 = p * ((double) data.dig_P8) / 32768.0;
 	p = p + (var1 + var2 + ((double) data.dig_P7)) / 16.0;
-	return p;
+	return p/100000;
 }
