@@ -101,7 +101,6 @@ typedef int64_t BME280_S64_t;
 	/**
 	 * @brief Đọc và tính toán giá trị nhiệt độ, áp suất, độ ẩm thực tế
 	 * @param hi2c Con trỏ trỏ tới khối ngoại vi i2c trên stm32
-	 * @param calib Con trỏ chứa hệ số calib đã lấy được
 	 * @param sensor_data Con trỏ chứa kết quả đo sau khi tính toán
 	 * @return HAL_StatusTypeDef
 	 */
@@ -110,7 +109,7 @@ typedef int64_t BME280_S64_t;
 	/**
 	 * @brief Kích hoạt lấy mẫu 1 lần
 	 * @param hi2c Con trỏ trỏ tới khối ngoại vi i2c trên stm32
-	 * @return @return HAL_StatusTypeDef
+	 * @return HAL_StatusTypeDef
 	 */
 	HAL_StatusTypeDef bme280_trigger_measurement(I2C_HandleTypeDef *hi2c);
 

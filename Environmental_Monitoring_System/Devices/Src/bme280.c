@@ -43,6 +43,12 @@ HAL_StatusTypeDef bme280_init(I2C_HandleTypeDef *hi2c)
 		return status;
 	}
 
+	status = bme280_get_triming_param(hi2c, calib_buf);
+	if(status != HAL_OK)
+	{
+		return status;
+	}
+
 	return HAL_OK;
 }
 
