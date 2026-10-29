@@ -31,27 +31,53 @@
 #include "LCD.h"
 #include "BMP280.h"
 #include "ADC_PIN.h"
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+typedef struct
+{
+	double Tem;
+	double Press;
+}BMP280_t;
+typedef struct
+{
+	int hour;
+	int minute;
+	int day;
+	int month;
+	int year;
+}time_t;
+typedef struct
+{
+	float Vol;
+}ADC_t;
+
+// ten cac loai data
 typedef enum
 {
 	BMP280,
-	Power
-}NameSensor_t;
+	Power,
+	TIME
+}MessageType_t;
 
 typedef struct
 {
-	NameSensor_t name;
-	double Tem;
-	double Press;
-	float Vol_Pin;
-}SensorData_t;
+	MessageType_t name;
+	union
+	{
+		BMP280_t bmp_vl;
+		time_t   time_vl;
+		ADC_t    vol_vl;
+	}data;
+}QueueMessage_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define RTC_BackUp 0x40002850
 
 /* USER CODE END PD */
 
@@ -64,6 +90,8 @@ typedef struct
 ADC_HandleTypeDef hadc1;
 
 I2C_HandleTypeDef hi2c1;
+
+RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi1;
 
@@ -97,6 +125,13 @@ const osThreadAttr_t Task_ADC_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityBelowNormal1,
 };
+/* Definitions for Task_RTC */
+osThreadId_t Task_RTCHandle;
+const osThreadAttr_t Task_RTC_attributes = {
+  .name = "Task_RTC",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* Definitions for myQueue01 */
 osMessageQueueId_t myQueue01Handle;
 const osMessageQueueAttr_t myQueue01_attributes = {
@@ -118,10 +153,12 @@ static void MX_I2C1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_RTC_Init(void);
 void StartTask_UART(void *argument);
 void StartTask_SPI(void *argument);
 void StartTask_I2C(void *argument);
 void StartTask_ADC(void *argument);
+void StartTask_RTC(void *argument);
 
 /* USER CODE BEGIN PFP */
 static char buff[128];
@@ -170,17 +207,22 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
 }
-static volatile uint8_t flag_button = 0;
+static volatile uint8_t flag_button = 1;
 static volatile uint32_t last_time = 0;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == GPIO_PIN_0)
 	{
+		if (flag_button == 4)
+		{
+			flag_button = 0;
+		}
+
 		uint32_t now = HAL_GetTick();
-		if((now - last_time) > 300)
+		if((now - last_time) > 400)
 		{
 			last_time = now;
-			flag_button ^= 1;
+			flag_button ++;
 		}
 	}
 }
@@ -224,6 +266,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Receive_IT(&huart2, &CMD, 1);
   LCD_Init();
@@ -250,7 +293,7 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of myQueue01 */
-  myQueue01Handle = osMessageQueueNew (16, sizeof(SensorData_t), &myQueue01_attributes);
+  myQueue01Handle = osMessageQueueNew (16, sizeof(QueueMessage_t), &myQueue01_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -268,6 +311,9 @@ int main(void)
 
   /* creation of Task_ADC */
   Task_ADCHandle = osThreadNew(StartTask_ADC, NULL, &Task_ADC_attributes);
+
+  /* creation of Task_RTC */
+  Task_RTCHandle = osThreadNew(StartTask_RTC, NULL, &Task_RTC_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -310,9 +356,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
@@ -426,6 +473,79 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+  RTC_TimeTypeDef sTime = {0};
+  RTC_DateTypeDef sDate = {0};
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+
+  /** Initialize RTC Only
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* USER CODE BEGIN Check_RTC_BKUP */
+  if (HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR0) == RTC_BackUp)
+  {
+  	return;
+  }
+  /* USER CODE END Check_RTC_BKUP */
+
+  /** Initialize RTC and set the Time and Date
+  */
+  sTime.Hours = 16;
+  sTime.Minutes = 18;
+  sTime.Seconds = 0;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
+  sDate.Month = RTC_MONTH_OCTOBER;
+  sDate.Date = 29;
+  sDate.Year = 26;
+
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Enable Calibrartion
+  */
+  if (HAL_RTCEx_SetCalibrationOutPut(&hrtc, RTC_CALIBOUTPUT_1HZ) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+  HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR0, RTC_BackUp);
+  /* USER CODE END RTC_Init 2 */
+
+}
+
+/**
   * @brief SPI1 Initialization Function
   * @param None
   * @retval None
@@ -509,6 +629,7 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -575,7 +696,7 @@ void StartTask_UART(void *argument)
     	}
     	else if (strcmp(CMD_Buffer,"version") == 0)
     	{
-    		mPrint("Version of Thanh and Hai.\n");
+    		mPrint("Version of Thanh.\n");
     		memset(CMD_Buffer, 0, sizeof(CMD_Buffer));
     	}
     	else
@@ -603,8 +724,8 @@ void StartTask_SPI(void *argument)
   /* USER CODE BEGIN StartTask_SPI */
   /* Infinite loop */
   mPrint("TASK Sensor SPI: RUNNING\n");
-  static SensorData_t data;
-  data.name = BMP280;
+  static QueueMessage_t sensor;
+  sensor.name = BMP280;
   for(;;)
   {
 	uint32_t adc_T = BMP280_ADC_T();
@@ -613,9 +734,9 @@ void StartTask_SPI(void *argument)
 	double P = BMP280_compensate_P_double(adc_P);
 	test_T = T;
 	test_P = P;
-	data.Tem = T;
-	data.Press = P;
-	osMessageQueuePut(myQueue01Handle, &data, 0,100);
+	sensor.data.bmp_vl.Tem = T;
+	sensor.data.bmp_vl.Press = P;
+	osMessageQueuePut(myQueue01Handle, &sensor, 0,100);
     osDelay(1000);
   }
   /* USER CODE END StartTask_SPI */
@@ -634,15 +755,15 @@ void StartTask_I2C(void *argument)
   /* Infinite loop */
   mPrint("TASK LCD I2C: RUNNING\r\n");
   char LCD_buff[20];
-  SensorData_t rx_data;
+  QueueMessage_t rx_data;
   for(;;)
   {
 	if (osMessageQueueGet(myQueue01Handle, &rx_data, 0, osWaitForever) == osOK)
 	{
-			if (flag_button == 0 && rx_data.name == Power)
+		if (flag_button == 1 && rx_data.name == Power)
 			{
 				LCD_Row_1;
-				snprintf(LCD_buff, sizeof(LCD_buff), "Power :  %.2f  V",rx_data.Vol_Pin);
+				snprintf(LCD_buff, sizeof(LCD_buff), "Power :  %.2f  V",rx_data.data.vol_vl.Vol);
 				Send_String(LCD_buff);
 				memset(LCD_buff, 0, sizeof(LCD_buff));
 				LCD_Row_2;
@@ -650,17 +771,28 @@ void StartTask_I2C(void *argument)
 				Send_String(LCD_buff);
 			    memset(LCD_buff,0,sizeof(LCD_buff));
 			}
-			else if (flag_button == 1 && rx_data.name == BMP280)
+		else if (flag_button == 2 && rx_data.name == BMP280)
 			{
 			   LCD_Row_1;
-			   snprintf(LCD_buff,sizeof(LCD_buff) ,"Tem:  %.2f   \xDF""C", rx_data.Tem);
+			   snprintf(LCD_buff,sizeof(LCD_buff) ,"Tem:  %.2f   \xDF""C", rx_data.data.bmp_vl.Tem);
 			   Send_String(LCD_buff);
 			   memset(LCD_buff,0,sizeof(LCD_buff));
 			   LCD_Row_2;
-			   snprintf(LCD_buff,sizeof(LCD_buff) ,"Press: %.2f  bar", rx_data.Press);
+			   snprintf(LCD_buff,sizeof(LCD_buff) ,"Press: %.2f  bar", rx_data.data.bmp_vl.Press);
 			   Send_String(LCD_buff);
 			   memset(LCD_buff,0,sizeof(LCD_buff));
 			}
+		else if(flag_button == 3 && rx_data.name == TIME)
+		    {
+			   LCD_Row_1;
+			   snprintf(LCD_buff,sizeof(LCD_buff) ,"Date: %d/%d/20%d  ", rx_data.data.time_vl.day,rx_data.data.time_vl.month,rx_data.data.time_vl.year);
+			   Send_String(LCD_buff);
+		       memset(LCD_buff,0,sizeof(LCD_buff));
+		       LCD_Row_2;
+		       snprintf(LCD_buff,sizeof(LCD_buff) ,"Time:   %d:%d     ", rx_data.data.time_vl.hour,rx_data.data.time_vl.minute);
+		       Send_String(LCD_buff);
+		       memset(LCD_buff,0,sizeof(LCD_buff));
+		    }
 	}
   }
   /* USER CODE END StartTask_I2C */
@@ -678,15 +810,46 @@ void StartTask_ADC(void *argument)
   /* USER CODE BEGIN StartTask_ADC */
   mPrint("TASK ADC PIN: RUNNING\n");
   /* Infinite loop */
-  static SensorData_t data;
+  static QueueMessage_t data;
   data.name = Power;
   for(;;)
   {
-	data.Vol_Pin = Bit_To_Vol();
+	data.data.vol_vl.Vol = Bit_To_Vol();
 	osMessageQueuePut(myQueue01Handle, &data, 0, 100);
     osDelay(3000);
   }
   /* USER CODE END StartTask_ADC */
+}
+
+/* USER CODE BEGIN Header_StartTask_RTC */
+/**
+* @brief Function implementing the Task_RTC thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask_RTC */
+void StartTask_RTC(void *argument)
+{
+  /* USER CODE BEGIN StartTask_RTC */
+  /* Infinite loop */
+  mPrint("TASK RTC: RUNNING\n");
+  static RTC_TimeTypeDef t;
+  static RTC_DateTypeDef d;
+  static QueueMessage_t time;
+  time.name = TIME;
+  for(;;)
+  {
+	HAL_RTC_GetTime(&hrtc, &t, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &d, RTC_FORMAT_BIN);
+	time.data.time_vl.day = d.Date;
+	time.data.time_vl.month = d.Month;
+	time.data.time_vl.year = d.Year;
+	time.data.time_vl.hour = t.Hours;
+	time.data.time_vl.minute = t.Minutes;
+	osMessageQueuePut(myQueue01Handle, &time, 0, 100);
+    osDelay(3000);
+  }
+  /* USER CODE END StartTask_RTC */
 }
 
 /**

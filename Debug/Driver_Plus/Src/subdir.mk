@@ -7,17 +7,20 @@
 C_SRCS += \
 ../Driver_Plus/Src/ADC_PIN.c \
 ../Driver_Plus/Src/BMP280.c \
-../Driver_Plus/Src/LCD.c 
+../Driver_Plus/Src/LCD.c \
+../Driver_Plus/Src/W25Q32.c 
 
 OBJS += \
 ./Driver_Plus/Src/ADC_PIN.o \
 ./Driver_Plus/Src/BMP280.o \
-./Driver_Plus/Src/LCD.o 
+./Driver_Plus/Src/LCD.o \
+./Driver_Plus/Src/W25Q32.o 
 
 C_DEPS += \
 ./Driver_Plus/Src/ADC_PIN.d \
 ./Driver_Plus/Src/BMP280.d \
-./Driver_Plus/Src/LCD.d 
+./Driver_Plus/Src/LCD.d \
+./Driver_Plus/Src/W25Q32.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -27,7 +30,7 @@ Driver_Plus/Src/%.o Driver_Plus/Src/%.su Driver_Plus/Src/%.cyclo: ../Driver_Plus
 clean: clean-Driver_Plus-2f-Src
 
 clean-Driver_Plus-2f-Src:
-	-$(RM) ./Driver_Plus/Src/ADC_PIN.cyclo ./Driver_Plus/Src/ADC_PIN.d ./Driver_Plus/Src/ADC_PIN.o ./Driver_Plus/Src/ADC_PIN.su ./Driver_Plus/Src/BMP280.cyclo ./Driver_Plus/Src/BMP280.d ./Driver_Plus/Src/BMP280.o ./Driver_Plus/Src/BMP280.su ./Driver_Plus/Src/LCD.cyclo ./Driver_Plus/Src/LCD.d ./Driver_Plus/Src/LCD.o ./Driver_Plus/Src/LCD.su
+	-$(RM) ./Driver_Plus/Src/ADC_PIN.cyclo ./Driver_Plus/Src/ADC_PIN.d ./Driver_Plus/Src/ADC_PIN.o ./Driver_Plus/Src/ADC_PIN.su ./Driver_Plus/Src/BMP280.cyclo ./Driver_Plus/Src/BMP280.d ./Driver_Plus/Src/BMP280.o ./Driver_Plus/Src/BMP280.su ./Driver_Plus/Src/LCD.cyclo ./Driver_Plus/Src/LCD.d ./Driver_Plus/Src/LCD.o ./Driver_Plus/Src/LCD.su ./Driver_Plus/Src/W25Q32.cyclo ./Driver_Plus/Src/W25Q32.d ./Driver_Plus/Src/W25Q32.o ./Driver_Plus/Src/W25Q32.su
 
 .PHONY: clean-Driver_Plus-2f-Src
 
