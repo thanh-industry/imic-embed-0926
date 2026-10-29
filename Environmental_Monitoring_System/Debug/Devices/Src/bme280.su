@@ -1,1 +1,8 @@
-../Devices/Src/bme280.c:10:19:bme280_init	40	static
+../Devices/Src/bme280.c:17:19:bme280_init	40	static
+../Devices/Src/bme280.c:49:19:bme280_read_id	40	static
+../Devices/Src/bme280.c:61:19:bme280_get_triming_param	40	static
+../Devices/Src/bme280.c:104:19:bme280_get_adc_value	40	static
+../Devices/Src/bme280.c:123:21:bme280_compensate_temperature	32	static
+../Devices/Src/bme280.c:136:21:bme280_compensate_pressure	328	static
+../Devices/Src/bme280.c:162:21:bme280_compensate_humidity	24	static
+../Devices/Src/bme280.c:181:19:sensor_get_vals	32	static

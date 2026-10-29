@@ -205,3 +205,19 @@ HAL_StatusTypeDef sensor_get_vals(I2C_HandleTypeDef *hi2c, bme280_data *sensor_d
 
 	return HAL_OK;
 }
+
+HAL_StatusTypeDef bme280_trigger_measurement(I2C_HandleTypeDef *hi2c)
+{
+	HAL_StatusTypeDef status;
+	uint8_t data;
+
+	//Ghi vào thanh ghi ctrl_meas
+	data = 0x25;
+	status = HAL_I2C_Mem_Write(hi2c, BME280_I2C_ADDRESS, BME280_REG_CTRL_MEAS, I2C_MEMADD_SIZE_8BIT, &data, 1, 100);
+	if(status != HAL_OK)
+	{
+		return status;
+	}
+
+	return HAL_OK;
+}

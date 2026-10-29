@@ -107,6 +107,13 @@ typedef int64_t BME280_S64_t;
 	 */
 	HAL_StatusTypeDef sensor_get_vals(I2C_HandleTypeDef *hi2c, bme280_data *sensor_data);
 
+	/**
+	 * @brief Kích hoạt lấy mẫu 1 lần
+	 * @param hi2c Con trỏ trỏ tới khối ngoại vi i2c trên stm32
+	 * @return @return HAL_StatusTypeDef
+	 */
+	HAL_StatusTypeDef bme280_trigger_measurement(I2C_HandleTypeDef *hi2c);
+
 
 #ifdef __cplusplus
 }
