@@ -10,7 +10,6 @@
 "./Driver_Plus/Src/ADC_PIN.o"
 "./Driver_Plus/Src/BMP280.o"
 "./Driver_Plus/Src/LCD.o"
-"./Driver_Plus/Src/W25Q32.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.o"

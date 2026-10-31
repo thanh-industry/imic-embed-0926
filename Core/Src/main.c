@@ -174,7 +174,7 @@ void mPrint(const char *str, ...)
 	osMutexRelease(myMutex01Handle);
 }
 uint8_t CMD;
-char CMD_Buffer[10];
+char CMD_Buffer[20];
 int CMD_Index = 0;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -191,7 +191,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		}
 		else
 		{
-
 			CMD_Buffer[CMD_Index ++] = CMD;
 		}
 
@@ -226,6 +225,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		}
 	}
 }
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -674,31 +674,56 @@ void StartTask_UART(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
-  mPrint("TASK UART: RUNNING\r\n");
   for(;;)
   {
-
+	mPrint("TASK UART: RUNNING\n");
     if (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) > 0)
     {
     	mPrint("Nhan duoc command: %s\n", CMD_Buffer);
+
     	if (strcmp(CMD_Buffer,"help") == 0)
     	{
     		mPrint("\nstatus\nsensor\nvoltage\nversion\n");
     		memset(CMD_Buffer, 0, sizeof(CMD_Buffer));
     	}
-    	else if (strcmp(CMD_Buffer,"status") == 0)
+    	// hien trang thai cua cac task
+    	else if (strcmp(CMD_Buffer,"status BMP280") == 0)
     	{
-    		// hien trang thai cac sensor
+    		if(BMP280_Read(0xD0) == 0x58)
+    		{
+    			mPrint("BMP280 conected\n");
+    			memset(CMD_Buffer, 0, sizeof(CMD_Buffer));
+    		}
+    		else
+    		{
+    			mPrint("BMP280 disconected\n");
+    			memset(CMD_Buffer, 0, sizeof(CMD_Buffer));
+    		}
     	}
-    	else if (strcmp(CMD_Buffer,"voltage") == 0)
+
+    	else if (strcmp(CMD_Buffer,"status LCD") == 0)
     	{
-    		// hien dien ap pin
+    		uint16_t lcd_addr = (0x27 << 1);
+    		if(HAL_I2C_IsDeviceReady(&hi2c1, lcd_addr, 3, 100) == HAL_OK)
+    		{
+    			mPrint("LCD conected\n");
+    			memset(CMD_Buffer, 0, sizeof(CMD_Buffer));
+    		}
+    		else
+    		{
+    			mPrint("LCD disconected\n");
+    			memset(CMD_Buffer, 0, sizeof(CMD_Buffer));
+    		}
+
     	}
+
+    	// hien version cua firmware
     	else if (strcmp(CMD_Buffer,"version") == 0)
     	{
     		mPrint("Version of Thanh.\n");
     		memset(CMD_Buffer, 0, sizeof(CMD_Buffer));
     	}
+    	// neu nhap command khong ton tai thi hien
     	else
     	{
     		mPrint("Command Not Found!!!\n");
@@ -723,11 +748,11 @@ void StartTask_SPI(void *argument)
 {
   /* USER CODE BEGIN StartTask_SPI */
   /* Infinite loop */
-  mPrint("TASK Sensor SPI: RUNNING\n");
   static QueueMessage_t sensor;
   sensor.name = BMP280;
   for(;;)
   {
+	mPrint("TASK Sensor SPI: RUNNING\n");
 	uint32_t adc_T = BMP280_ADC_T();
 	uint32_t adc_P = BMP280_ADC_P();
 	double T = BMP280_compensate_T_double(adc_T);
@@ -753,11 +778,11 @@ void StartTask_I2C(void *argument)
 {
   /* USER CODE BEGIN StartTask_I2C */
   /* Infinite loop */
-  mPrint("TASK LCD I2C: RUNNING\r\n");
   char LCD_buff[20];
   QueueMessage_t rx_data;
   for(;;)
   {
+	mPrint("TASK LCD I2C: RUNNING\n");
 	if (osMessageQueueGet(myQueue01Handle, &rx_data, 0, osWaitForever) == osOK)
 	{
 		if (flag_button == 1 && rx_data.name == Power)
@@ -808,12 +833,12 @@ void StartTask_I2C(void *argument)
 void StartTask_ADC(void *argument)
 {
   /* USER CODE BEGIN StartTask_ADC */
-  mPrint("TASK ADC PIN: RUNNING\n");
   /* Infinite loop */
   static QueueMessage_t data;
   data.name = Power;
   for(;;)
   {
+	mPrint("TASK ADC PIN: RUNNING\n");
 	data.data.vol_vl.Vol = Bit_To_Vol();
 	osMessageQueuePut(myQueue01Handle, &data, 0, 100);
     osDelay(3000);
