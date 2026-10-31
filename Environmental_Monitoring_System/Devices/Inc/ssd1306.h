@@ -22,7 +22,7 @@ extern "C" {
 #define SET_LOWER_COLUMN_START_ADDRESS_FOR_PAGE_ADDRESSING_MODE		0x00 //0x00 ~ 0x0F
 #define SET_HIGHER_COLUMN_START_ADDRESS_FOR_PAGE_ADDRESSING_MODE	0x10 //0x10 ~ 0x1F
 #define SET_MEMORY_ADDRESS_MODE 									0x20
-#define SET_COLUMN_ADDRESS											0X21
+#define SET_COLUMN_ADDRESS											0x21
 #define SET_PAGE_ADDRESS											0x22
 #define SET_DISPLAY_START_LINE										0x40 //0x40 ~ 0x7F
 #define SET_CONTRAST_CONTROL_FOR_BANK0								0x81
@@ -54,6 +54,13 @@ extern "C" {
 #define DEACTIVATE_SCROLL											0x2E
 #define ACTIVATE_SCROLL												0x2F
 #define SET_VERTICAL_SCROLL_AREA									0xA3
+
+//Struct
+typedef struct {
+    const uint8_t width;      // Chiều rộng ký tự (pixel)
+    const uint8_t height;     // Chiều cao ký tự (pixel)
+    const uint16_t *data;     // Con trỏ trỏ tới mảng dữ liệu font trong fonts.c
+} SSD1306_Font_t;
 
 //Functions prototype
 
@@ -94,22 +101,25 @@ extern "C" {
 	void ssd1306_draw_pixel(uint8_t x, uint8_t y, uint8_t color);
 
 	/**
-	 * @brief 	Hàm viết 1 ký tự
+	 * @brief Hàm khởi tạo con trỏ xác định vị trí bắt đầu của ký tự muốn in
 	 * @param 	x Tọa độ tương ứng với SEG
 	 * @param 	y Tọa độ tương ứng với COM
+	 */
+	void ssd1306_set_cursor(uint8_t x, uint8_t y);
+
+	/**
+	 * @brief 	Hàm viết 1 ký tự
 	 * @param 	color Điểm ảnh bật/tắt
 	 * @param 	ch Ký tự muốn vẽ
 	 */
-	void ssd1306_write_char(uint8_t x, uint8_t y, char ch, uint8_t color);
+	void ssd1306_write_char(char ch, SSD1306_Font_t font, uint8_t color);
 
 	/**
 	 *@ brief 	Hàm viết 1 chuỗi ký tự
-	 *@ param 	x Tọa độ tương ứng với SEG
-	 *@ param 	y Tọa độ tương ứng với COM
 	 *@ param 	color điểm ảnh bật/tắt
-	 *@ param	str Chuỗi ký tự muốn vẽ
+	 *@ param	str Con trỏ chứa chuỗi ký tự muốn vẽ
 	 */
-	void ssd1306_write_string(uint8_t x, uint8_t y, const char *str, uint8_t color);
+	void ssd1306_write_string(const char *str, SSD1306_Font_t font, uint8_t color);
 
 #ifdef __cplusplus
 }
