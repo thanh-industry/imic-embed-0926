@@ -105,7 +105,117 @@ Các Task trao đổi dữ liệu để phối hợp quá trình thu thập, x�
 5. Task_RTC cập nhật thông tin ngày và giờ.
 6. Các Task gửi dữ liệu đến Task_I2C để hiển thị lên LCD.
 7. Task_UART tiếp nhận lệnh từ Hercules và cung cấp thông tin trạng thái hệ thống.
+### 3.3. UART Command Line Interface (CLI)
 
+Hệ thống tích hợp UART Command Line Interface (CLI), cho phép người dùng gửi lệnh từ máy tính đến STM32 thông qua phần mềm Hercules Serial Port.
+
+Task_UART tiếp nhận và xử lý các lệnh được gửi từ máy tính. Khi nhận được thông báo từ Task Notification, Task_UART sẽ kiểm tra nội dung command và thực hiện chức năng tương ứng, sau đó phản hồi kết quả thông qua UART.
+
+#### Cấu hình UART
+
+| Thông số | Giá trị |
+|---|---|
+| Peripheral | USART2 |
+| Baud Rate | 115200 |
+| Data Bits | 8 |
+| Parity | None |
+| Stop Bits | 1 |
+| Flow Control | None |
+| Phần mềm giao tiếp | Hercules Serial Port |
+
+#### Danh sách Command
+
+| Command | Chức năng |
+|---|---|
+| `help` | Hiển thị danh sách lệnh hỗ trợ. |
+| `status BMP280` | Kiểm tra trạng thái kết nối của cảm biến BMP280 thông qua thanh ghi Chip ID. |
+| `status LCD` | Kiểm tra trạng thái kết nối LCD thông qua giao tiếp I2C. |
+| `version` | Hiển thị thông tin phiên bản firmware. |
+
+#### Hướng dẫn sử dụng
+
+**Bước 1:** Kết nối board STM32 với máy tính thông qua USB-to-UART hoặc bộ chuyển đổi USB-to-Serial.
+
+**Bước 2:** Mở phần mềm Hercules Serial Port và chọn cổng COM tương ứng.
+
+**Bước 3:** Cấu hình thông số UART:
+- Baud Rate: 115200
+- Data Bits: 8
+- Parity: None
+- Stop Bits: 1
+
+**Bước 4:** Nhập command vào cửa sổ Hercules và gửi đến STM32.
+
+#### Ví dụ thực tế
+
+**1. Hiển thị danh sách lệnh**
+
+Command:
+```text
+help
+```
+
+Response:
+```text
+status
+sensor
+voltage
+version
+```
+
+**2. Kiểm tra cảm biến BMP280**
+
+Command:
+```text
+status BMP280
+```
+
+Response khi cảm biến hoạt động:
+```text
+BMP280 connected
+```
+
+Nếu cảm biến không phản hồi đúng Chip ID:
+```text
+BMP280 disconnected
+```
+
+**3. Kiểm tra màn hình LCD**
+
+Command:
+```text
+status LCD
+```
+
+Response:
+```text
+LCD connected
+```
+
+Nếu LCD không phản hồi qua giao tiếp I2C:
+```text
+LCD disconnected
+```
+
+**4. Kiểm tra phiên bản Firmware**
+
+Command:
+```text
+version
+```
+
+Response:
+```text
+Version of Thanh.
+```
+
+#### Cơ chế xử lý Command
+
+- UART2 nhận dữ liệu command từ máy tính.
+- Task Notification được sử dụng để thông báo cho Task_UART khi có command cần xử lý.
+- Task_UART sử dụng `strcmp()` để so sánh nội dung command với các lệnh được định nghĩa.
+- Tùy theo command, hệ thống thực hiện kiểm tra thiết bị hoặc trả về thông tin tương ứng.
+- Mutex được sử dụng để đồng bộ quyền truy cập UART khi nhiều Task cùng thực hiện truyền dữ liệu.
 ## 4. Môi trường phát triển (Development Environment)
 
 | Thành phần | Công cụ / Công nghệ |
