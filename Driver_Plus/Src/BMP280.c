@@ -82,6 +82,7 @@ uint32_t BMP280_ADC_P()
 				   | (uint32_t) (BMP280_Read(BMP_REG_PRESS_XLSB) >> 4);
 	return adc_p;
 }
+// code cua nha san xuat dung de gia tri adc sang gia tri thuc
 // Returns temperature in DegC, double precision. Output value of “51.23” equals 51.23 DegC.
 // t_fine carries fine temperature as global value
 int32_t t_fine;

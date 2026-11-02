@@ -2775,20 +2775,19 @@ void StartTask_SPI(void *argument)
  80018ba:	4909      	ldr	r1, [pc, #36]	@ (80018e0 <StartTask_SPI+0x78>)
  80018bc:	e9d7 2302 	ldrd	r2, r3, [r7, #8]
  80018c0:	e9c1 2304 	strd	r2, r3, [r1, #16]
-	osMessageQueuePut(myQueue01Handle, &sensor, 0,100);
+	osMessageQueuePut(myQueue01Handle, &sensor, 0,1000);
  80018c4:	4b0a      	ldr	r3, [pc, #40]	@ (80018f0 <StartTask_SPI+0x88>)
  80018c6:	6818      	ldr	r0, [r3, #0]
- 80018c8:	2364      	movs	r3, #100	@ 0x64
- 80018ca:	2200      	movs	r2, #0
- 80018cc:	4904      	ldr	r1, [pc, #16]	@ (80018e0 <StartTask_SPI+0x78>)
- 80018ce:	f006 fafd 	bl	8007ecc <osMessageQueuePut>
+ 80018c8:	f44f 737a 	mov.w	r3, #1000	@ 0x3e8
+ 80018cc:	2200      	movs	r2, #0
+ 80018ce:	4904      	ldr	r1, [pc, #16]	@ (80018e0 <StartTask_SPI+0x78>)
+ 80018d0:	f006 fafc 	bl	8007ecc <osMessageQueuePut>
     osDelay(1000);
- 80018d2:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
- 80018d6:	f006 f95d 	bl	8007b94 <osDelay>
+ 80018d4:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 80018d8:	f006 f95c 	bl	8007b94 <osDelay>
   {
- 80018da:	bf00      	nop
- 80018dc:	e7cb      	b.n	8001876 <StartTask_SPI+0xe>
- 80018de:	bf00      	nop
+ 80018dc:	bf00      	nop
+ 80018de:	e7ca      	b.n	8001876 <StartTask_SPI+0xe>
  80018e0:	20000428 	.word	0x20000428
  80018e4:	0800fcd0 	.word	0x0800fcd0
  80018e8:	20000418 	.word	0x20000418
@@ -3118,8 +3117,9 @@ void StartTask_RTC(void *argument)
  8001b54:	2200      	movs	r2, #0
  8001b56:	4905      	ldr	r1, [pc, #20]	@ (8001b6c <StartTask_RTC+0x78>)
  8001b58:	f006 f9b8 	bl	8007ecc <osMessageQueuePut>
-    osDelay(3000);
- 8001b5c:	f640 30b8 	movw	r0, #3000	@ 0xbb8
+	//mPrint("Time: %dh%d\n", time.data.time_vl.hour,time.data.time_vl.minute);
+    osDelay(10000);
+ 8001b5c:	f242 7010 	movw	r0, #10000	@ 0x2710
  8001b60:	f006 f818 	bl	8007b94 <osDelay>
 	HAL_RTC_GetTime(&hrtc, &t, RTC_FORMAT_BIN);
  8001b64:	bf00      	nop

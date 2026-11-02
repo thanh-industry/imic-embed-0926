@@ -31,8 +31,6 @@
 #include "LCD.h"
 #include "BMP280.h"
 #include "ADC_PIN.h"
-
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -761,7 +759,7 @@ void StartTask_SPI(void *argument)
 	test_P = P;
 	sensor.data.bmp_vl.Tem = T;
 	sensor.data.bmp_vl.Press = P;
-	osMessageQueuePut(myQueue01Handle, &sensor, 0,100);
+	osMessageQueuePut(myQueue01Handle, &sensor, 0,1000);
     osDelay(1000);
   }
   /* USER CODE END StartTask_SPI */
@@ -857,13 +855,13 @@ void StartTask_RTC(void *argument)
 {
   /* USER CODE BEGIN StartTask_RTC */
   /* Infinite loop */
-  mPrint("TASK RTC: RUNNING\n");
   static RTC_TimeTypeDef t;
   static RTC_DateTypeDef d;
   static QueueMessage_t time;
   time.name = TIME;
   for(;;)
   {
+	mPrint("TASK RTC: RUNNING\n");
 	HAL_RTC_GetTime(&hrtc, &t, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &d, RTC_FORMAT_BIN);
 	time.data.time_vl.day = d.Date;
@@ -872,7 +870,8 @@ void StartTask_RTC(void *argument)
 	time.data.time_vl.hour = t.Hours;
 	time.data.time_vl.minute = t.Minutes;
 	osMessageQueuePut(myQueue01Handle, &time, 0, 100);
-    osDelay(3000);
+	mPrint("Time: %dh%d\n", time.data.time_vl.hour,time.data.time_vl.minute);
+    osDelay(10000);
   }
   /* USER CODE END StartTask_RTC */
 }
