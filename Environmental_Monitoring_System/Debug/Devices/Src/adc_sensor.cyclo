@@ -1,0 +1,4 @@
+../Devices/Src/adc_sensor.c:6:6:adc_sensor_init	1
+../Devices/Src/adc_sensor.c:11:10:adc_sensor_read_raw	4
+../Devices/Src/adc_sensor.c:37:7:adc_sensor_read_voltage	1
+../Devices/Src/adc_sensor.c:43:7:adc_sensor_read_filtered_voltage	3

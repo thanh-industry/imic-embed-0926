@@ -1,0 +1,9 @@
+../Devices/Src/w25q32.c:8:13:w25q32_cs_low	1
+../Devices/Src/w25q32.c:13:13:w25q32_cs_high	1
+../Devices/Src/w25q32.c:18:19:w25q32_init	8
+../Devices/Src/w25q32.c:56:19:w25q32_write_enable	1
+../Devices/Src/w25q32.c:69:19:w25q32_wait_busy	5
+../Devices/Src/w25q32.c:111:19:w25q32_erase_sector	3
+../Devices/Src/w25q32.c:139:19:w25q32_read	4
+../Devices/Src/w25q32.c:168:19:w25q32_write_page	7
+../Devices/Src/w25q32.c:210:19:w25q32_write	6
