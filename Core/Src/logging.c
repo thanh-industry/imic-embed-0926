@@ -40,7 +40,7 @@ void Log_Print(LogLevel_t level, const char *file, int line, const char *format,
         break;
     }
 
-    // Lấy tên file ngắn gọn từ đường dẫn tuyệt đối
+    // Lấy tên file ngắn gọn từ đường dẫn , hàm strchr nó sẽ lấy các kí tự đằng sau cái được đưa, gồm cả kí tự
     const char *filename = strrchr(file, '/');
     if (filename == NULL) {
         filename = strrchr(file, '\\');
@@ -50,16 +50,16 @@ void Log_Print(LogLevel_t level, const char *file, int line, const char *format,
     // Tạo phần tiêu đề log kèm thời gian hệ thống (Tick), tên file và dòng code
     header_len = snprintf(header_buf, sizeof(header_buf), "[%lu][%s][%s:%d] ",
                           HAL_GetTick(), level_str, filename, line);
-
+    // chỉ đích đến để lưu cái vừa in vào bộ đệm rồi xác định lại kích thước để stm32 tự biết mà cắt cho gọn
     if (header_len > 0) {
         HAL_UART_Transmit(s_LogUart, (uint8_t*)header_buf, header_len, HAL_MAX_DELAY);
     }
 
     // Định dạng nội dung thông điệp cần log truyền vào
-    va_list args;
+    va_list args;//
     va_start(args, format);
     msg_len = vsnprintf(msg_buf, sizeof(msg_buf), format, args);
-    va_end(args);
+    va_end(args);// giải phóng việc tìm dữ liệu
 
     if (msg_len > 0) {
         HAL_UART_Transmit(s_LogUart, (uint8_t*)msg_buf, msg_len, HAL_MAX_DELAY);
@@ -68,3 +68,4 @@ void Log_Print(LogLevel_t level, const char *file, int line, const char *format,
     // Ký tự xuống dòng kết thúc bản tin log
     HAL_UART_Transmit(s_LogUart, (uint8_t*)"\r\n", 2, HAL_MAX_DELAY);
 }
+
