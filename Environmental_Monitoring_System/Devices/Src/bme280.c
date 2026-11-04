@@ -2,7 +2,6 @@
 #include "bme280.h"
 
 //Values
-static uint8_t id_chip;
 static uint8_t calib_buf[24];
 static uint8_t bme280_buf[8];
 

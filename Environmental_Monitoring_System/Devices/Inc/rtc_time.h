@@ -8,7 +8,7 @@ extern "C" {
 #include "stm32f4xx_hal.h"
 
 //Define
-#define RTC_STRING_BUFFER_SIZE    25
+#define RTC_STRING_BUFFER_SIZE    32
 
 //Struct
 typedef struct
