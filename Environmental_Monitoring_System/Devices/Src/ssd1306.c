@@ -10,7 +10,7 @@ static uint8_t ssd1306_buffer[SSD1306_BUFFER_SIZE];
 static uint8_t CurrentX = 0;
 static uint8_t CurrentY = 0;
 
-//Funtions
+//Functions
 
 HAL_StatusTypeDef ssd1306_write_command(I2C_HandleTypeDef *hi2c, uint8_t cmd)
 {
