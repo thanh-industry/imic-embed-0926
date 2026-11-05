@@ -1,0 +1,8 @@
+../Services/Src/cli_parser.c:27:6:cli_parser_update_data	24	static
+../Services/Src/cli_parser.c:35:13:cli_printf	144	static
+../Services/Src/cli_parser.c:54:13:cmd_help	16	static
+../Services/Src/cli_parser.c:64:13:cmd_status	8	static
+../Services/Src/cli_parser.c:74:13:cmd_sensor	8	static
+../Services/Src/cli_parser.c:82:13:cmd_voltage	8	static
+../Services/Src/cli_parser.c:89:13:cmd_version	8	static
+../Services/Src/cli_parser.c:97:6:cli_parser_process	32	static

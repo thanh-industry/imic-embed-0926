@@ -5,12 +5,15 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Services/Src/cli_parser.c \
 ../Services/Src/log.c 
 
 OBJS += \
+./Services/Src/cli_parser.o \
 ./Services/Src/log.o 
 
 C_DEPS += \
+./Services/Src/cli_parser.d \
 ./Services/Src/log.d 
 
 
@@ -21,7 +24,7 @@ Services/Src/%.o Services/Src/%.su Services/Src/%.cyclo: ../Services/Src/%.c Ser
 clean: clean-Services-2f-Src
 
 clean-Services-2f-Src:
-	-$(RM) ./Services/Src/log.cyclo ./Services/Src/log.d ./Services/Src/log.o ./Services/Src/log.su
+	-$(RM) ./Services/Src/cli_parser.cyclo ./Services/Src/cli_parser.d ./Services/Src/cli_parser.o ./Services/Src/cli_parser.su ./Services/Src/log.cyclo ./Services/Src/log.d ./Services/Src/log.o ./Services/Src/log.su
 
 .PHONY: clean-Services-2f-Src
 
