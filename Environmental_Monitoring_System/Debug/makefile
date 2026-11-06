@@ -19,6 +19,7 @@ RM := rm -rf
 -include Devices/Src/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
+-include App/Src/subdir.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -68,7 +69,7 @@ main-build: Environmental_Monitoring_System.elf secondary-outputs
 
 # Tool invocations
 Environmental_Monitoring_System.elf Environmental_Monitoring_System.map: $(OBJS) $(USER_OBJS) C:\Users\LENOVO\Desktop\imic-embed-0926\Environmental_Monitoring_System\STM32F411VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Environmental_Monitoring_System.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\LENOVO\Desktop\imic-embed-0926\Environmental_Monitoring_System\STM32F411VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Environmental_Monitoring_System.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "Environmental_Monitoring_System.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\LENOVO\Desktop\imic-embed-0926\Environmental_Monitoring_System\STM32F411VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Environmental_Monitoring_System.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

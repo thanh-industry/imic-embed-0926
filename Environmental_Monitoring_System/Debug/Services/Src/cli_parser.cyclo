@@ -1,8 +1,8 @@
-../Services/Src/cli_parser.c:27:6:cli_parser_update_data	2
-../Services/Src/cli_parser.c:35:13:cli_printf	3
-../Services/Src/cli_parser.c:54:13:cmd_help	2
-../Services/Src/cli_parser.c:64:13:cmd_status	5
-../Services/Src/cli_parser.c:74:13:cmd_sensor	1
-../Services/Src/cli_parser.c:82:13:cmd_voltage	2
-../Services/Src/cli_parser.c:89:13:cmd_version	1
-../Services/Src/cli_parser.c:97:6:cli_parser_process	6
+../Services/Src/cli_parser.c:31:6:cli_parser_update_data	2
+../Services/Src/cli_parser.c:39:13:cli_printf	3
+../Services/Src/cli_parser.c:58:13:cmd_help	2
+../Services/Src/cli_parser.c:79:13:cmd_status	9
+../Services/Src/cli_parser.c:120:13:cmd_sensor	1
+../Services/Src/cli_parser.c:150:13:cmd_voltage	3
+../Services/Src/cli_parser.c:175:13:cmd_version	1
+../Services/Src/cli_parser.c:201:6:cli_parser_process	6
