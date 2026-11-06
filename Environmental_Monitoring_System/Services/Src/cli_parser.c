@@ -10,7 +10,6 @@
 //Value
 extern UART_HandleTypeDef huart2;
 extern I2C_HandleTypeDef hi2c2;
-static System_Data_t current_sys_data = {0};
 
 static void cmd_help(void);
 static void cmd_status(void);

@@ -31,6 +31,8 @@ typedef struct {
 	uint8_t adc_ok;        // 1: ADC đọc tốt, 0: Lỗi
 }	System_Data_t;
 
+extern System_Data_t current_sys_data;
+
 //Functions Prototype
 
 	/**
