@@ -2,42 +2,27 @@
 /**
   ******************************************************************************
   * @file           : main.c
-  * @brief          : Main program body - ADC + Logging
+  * @brief          : Main program body - FreeRTOS + ADC + Logging + Command
   ******************************************************************************
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "logging.h" // Thư viện Log tự chế
-#include "adc.h"     // Thư viện ADC (Bản nâng cấp)
+#include "logging.h"
+#include "adc.h"
+#include "freertos.h"
 /* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-
+I2C_HandleTypeDef hi2c1;
+SPI_HandleTypeDef hspi1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
-
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -45,14 +30,12 @@ static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_I2C1_Init(void);
+static void MX_SPI1_Init(void);
+
 /* USER CODE BEGIN PFP */
-
+void MX_FREERTOS_Init(void);
 /* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
@@ -60,72 +43,45 @@ static void MX_ADC1_Init(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
   /* MCU Configuration--------------------------------------------------------*/
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
+  MX_I2C1_Init();
+  MX_SPI1_Init();
 
   /* USER CODE BEGIN 2 */
-  // 1. Khởi tạo module Log, trỏ vào USART2
   Log_Init(&huart2);
-
-  // 2. Khởi tạo module ADC
   ADC_Init_Module(&hadc1);
 
   LOG_I("=========================================");
   LOG_I(" STM32F407 Boot Successfully at 168 MHz!");
   LOG_I(" SystemCoreClock = %lu Hz", (unsigned long)SystemCoreClock);
+  LOG_I(" FreeRTOS kernel starting...");
   LOG_I("=========================================");
   /* USER CODE END 2 */
 
-  /* Infinite loop */
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  MX_FREERTOS_Init(); // Tạo 4 task
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* USER CODE BEGIN WHILE */
-  // khởi tạo biến nhận và ghi kí tự
-  uint8_t rx_data;
-  uint32_t g_tick_count=0;
+  LOG_E("FATAL: Scheduler returned! System halted.");
   while (1)
   {
-	  //1.1 Kiểm tra dữ liệu đưa vào
-	  if(HAL_UART_Receive(&huart2, &rx_data,1,10)==HAL_OK){
-		  HAL_UART_Transmit(&huart2, &rx_data,1, 100);
-	  }
-    // 1.2 Đọc điện áp từ chân PA0 (Lấy trung bình 10 lần để lọc nhiễu)
-    float voltage = ADC_Read_Filtered_Voltage(10);
-
-    // 2. Tách phần nguyên và phần thập phân để in (Do IDE chưa bật in số thực)
-    int v_int = (int)voltage;
-    int v_frac = (int)((voltage - v_int) * 100);
-    //3.1 in thông tin log
-    LOG_D("He thong dang chay binh thuong. Tick = %lu", g_tick_count);
-
-    // 3.2. In ra màn hình Hercules
-    LOG_I("[ADC] Voltage = %d.%02d V", v_int, v_frac);
-
-    // 4. Chờ 1 giây
-    HAL_Delay(1000);
-    // Tang bien g_tick_count
-   g_tick_count++;
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -133,6 +89,7 @@ int main(void)
 
 /**
   * @brief System Clock Configuration
+  * @retval None
   */
 void SystemClock_Config(void)
 {
@@ -146,7 +103,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 25;
+  RCC_OscInitStruct.PLL.PLLM = 25;  // LƯU Ý: Nếu dùng thạch anh 8MHz, đổi 25 thành 8
   RCC_OscInitStruct.PLL.PLLN = 336;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
@@ -168,13 +125,11 @@ void SystemClock_Config(void)
   }
 }
 
-/**
-  * @brief ADC1 Initialization Function
-  */
+/* --- CÁC HÀM KHỞI TẠO NGOẠI VI (GIỮ NGUYÊN) --- */
+
 static void MX_ADC1_Init(void)
 {
   ADC_ChannelConfTypeDef sConfig = {0};
-
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
@@ -187,23 +142,45 @@ static void MX_ADC1_Init(void)
   hadc1.Init.NbrOfConversion = 1;
   hadc1.Init.DMAContinuousRequests = DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  if (HAL_ADC_Init(&hadc1) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  if (HAL_ADC_Init(&hadc1) != HAL_OK) Error_Handler();
 
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) Error_Handler();
 }
 
-/**
-  * @brief USART2 Initialization Function
-  */
+static void MX_I2C1_Init(void)
+{
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK) Error_Handler();
+}
+
+static void MX_SPI1_Init(void)
+{
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK) Error_Handler();
+}
+
 static void MX_USART2_UART_Init(void)
 {
   huart2.Instance = USART2;
@@ -214,15 +191,9 @@ static void MX_USART2_UART_Init(void)
   huart2.Init.Mode = UART_MODE_TX_RX;
   huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  if (HAL_UART_Init(&huart2) != HAL_OK) Error_Handler();
 }
 
-/**
-  * @brief USART3 Initialization Function
-  */
 static void MX_USART3_UART_Init(void)
 {
   huart3.Instance = USART3;
@@ -233,15 +204,9 @@ static void MX_USART3_UART_Init(void)
   huart3.Init.Mode = UART_MODE_TX_RX;
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart3) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  if (HAL_UART_Init(&huart3) != HAL_OK) Error_Handler();
 }
 
-/**
-  * @brief GPIO Initialization Function
-  */
 static void MX_GPIO_Init(void)
 {
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -250,23 +215,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 }
 
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  */
 void Error_Handler(void)
 {
   __disable_irq();
-  while (1)
-  {
-  }
+  while (1) { }
 }
-
-#ifdef USE_FULL_ASSERT
-void assert_failed(uint8_t *file, uint32_t line)
-{
-}
-#endif /* USE_FULL_ASSERT */
