@@ -1,0 +1,2 @@
+../App/Src/task_sensor.c:4:6:StartBmeTask	1
+../App/Src/task_sensor.c:12:6:StartVoltTask	1

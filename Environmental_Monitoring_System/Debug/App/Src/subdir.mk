@@ -5,13 +5,25 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../App/Src/app_main.c 
+../App/Src/app_main.c \
+../App/Src/task_cli.c \
+../App/Src/task_display.c \
+../App/Src/task_sensor.c \
+../App/Src/task_storage.c 
 
 OBJS += \
-./App/Src/app_main.o 
+./App/Src/app_main.o \
+./App/Src/task_cli.o \
+./App/Src/task_display.o \
+./App/Src/task_sensor.o \
+./App/Src/task_storage.o 
 
 C_DEPS += \
-./App/Src/app_main.d 
+./App/Src/app_main.d \
+./App/Src/task_cli.d \
+./App/Src/task_display.d \
+./App/Src/task_sensor.d \
+./App/Src/task_storage.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -21,7 +33,7 @@ App/Src/%.o App/Src/%.su App/Src/%.cyclo: ../App/Src/%.c App/Src/subdir.mk
 clean: clean-App-2f-Src
 
 clean-App-2f-Src:
-	-$(RM) ./App/Src/app_main.cyclo ./App/Src/app_main.d ./App/Src/app_main.o ./App/Src/app_main.su
+	-$(RM) ./App/Src/app_main.cyclo ./App/Src/app_main.d ./App/Src/app_main.o ./App/Src/app_main.su ./App/Src/task_cli.cyclo ./App/Src/task_cli.d ./App/Src/task_cli.o ./App/Src/task_cli.su ./App/Src/task_display.cyclo ./App/Src/task_display.d ./App/Src/task_display.o ./App/Src/task_display.su ./App/Src/task_sensor.cyclo ./App/Src/task_sensor.d ./App/Src/task_sensor.o ./App/Src/task_sensor.su ./App/Src/task_storage.cyclo ./App/Src/task_storage.d ./App/Src/task_storage.o ./App/Src/task_storage.su
 
 .PHONY: clean-App-2f-Src
 

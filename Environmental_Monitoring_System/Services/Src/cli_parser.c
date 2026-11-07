@@ -208,7 +208,6 @@ void cli_parser_process(char *cmd_line)
 	char *cmd_name = strtok(cmd_line, " \t\r\n"); //Lệnh strtok là để để lấy chuỗi trước \r\n bỏ vào cmd_name
 	if(cmd_name == NULL)
 	{
-		cli_printf("\r\n> ");
 		return;
 	}
 
@@ -232,7 +231,5 @@ void cli_parser_process(char *cmd_line)
 	{
 		cli_printf("\r\nUnknown command: '%s'. Type 'help' for options.\r\n", cmd_name);
 	}
-
-	cli_printf("\r\n> ");
 
 }

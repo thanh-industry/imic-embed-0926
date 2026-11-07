@@ -37,7 +37,11 @@ App/Src/app_main.o: ../App/Src/app_main.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_cli.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_sensor.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_display.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_storage.h
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/app_main.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Services/Inc/cli_parser.h:
@@ -77,3 +81,7 @@ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Services
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_cli.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_sensor.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_display.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_storage.h:

@@ -1,4 +1,8 @@
 "./App/Src/app_main.o"
+"./App/Src/task_cli.o"
+"./App/Src/task_display.o"
+"./App/Src/task_sensor.o"
+"./App/Src/task_storage.o"
 "./Core/Src/freertos.o"
 "./Core/Src/main.o"
 "./Core/Src/stm32f4xx_hal_msp.o"

@@ -1,5 +1,9 @@
 //Include
 #include "app_main.h"
+#include "task_cli.h"
+#include "task_sensor.h"
+#include "task_display.h"
+#include "task_storage.h"
 
 // 1. Cấp phát bộ nhớ thực tế cho biến dữ liệu toàn cục
 System_Data_t current_sys_data = {0};
