@@ -1,2 +1,2 @@
-../App/Src/task_sensor.c:4:6:StartBmeTask	16	static
-../App/Src/task_sensor.c:12:6:StartVoltTask	16	static
+../App/Src/task_sensor.c:10:6:StartBmeTask	32	static
+../App/Src/task_sensor.c:43:6:StartVoltTask	24	static

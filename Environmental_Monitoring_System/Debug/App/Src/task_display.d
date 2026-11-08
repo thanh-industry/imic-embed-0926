@@ -1,7 +1,7 @@
 App/Src/task_display.o: ../App/Src/task_display.c \
  C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_display.h \
- C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/app_main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/app_main.h \
  C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Services/Inc/cli_parser.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h \
@@ -38,10 +38,13 @@ App/Src/task_display.o: ../App/Src/task_display.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306_fonts.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306.h
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_display.h:
-C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/app_main.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/app_main.h:
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Services/Inc/cli_parser.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h:
@@ -79,3 +82,6 @@ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Services
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306_fonts.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306.h:

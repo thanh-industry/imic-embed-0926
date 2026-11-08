@@ -58,7 +58,16 @@ void StartCliTask(void *argument)
     			if(cmd_index > 0)
     			{
     				cmd_buffer[cmd_index] = '\0';
+
+    				// 1. Chiếm Mutex trước khi Parser vẽ lên màn hình OLED qua I2C2
+					osMutexAcquire(oledMutexHandle, osWaitForever);
+
     				cli_parser_process(cmd_buffer);
+
+    				// 2. Nhả Mutex ngay sau khi lệnh vẽ hoàn tất
+					osMutexRelease(oledMutexHandle);
+
+					oled_hold_seconds = 5; // Giữ màn hình kết quả CLI trong 5 giây
 
     				cmd_index  = 0;
     				memset(cmd_buffer, 0, sizeof(cmd_buffer));

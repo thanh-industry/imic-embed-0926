@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 #include "cmsis_os2.h"
-#include <stdint.h>
 
 #define BME_SAMPLE_PERIOD_MS 1000U
 #define VOLT_SAMPLE_PERIOD_MS 1000U

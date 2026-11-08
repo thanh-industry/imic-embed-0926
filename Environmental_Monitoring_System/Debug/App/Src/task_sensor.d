@@ -1,7 +1,7 @@
 App/Src/task_sensor.o: ../App/Src/task_sensor.c \
  C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_sensor.h \
- C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/app_main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/app_main.h \
  C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Services/Inc/cli_parser.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h \
@@ -38,10 +38,12 @@ App/Src/task_sensor.o: ../App/Src/task_sensor.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/bme280.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/adc_sensor.h
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/task_sensor.h:
-C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/app_main.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/App/Inc/app_main.h:
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Services/Inc/cli_parser.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h:
@@ -79,3 +81,5 @@ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Services
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/bme280.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/adc_sensor.h:

@@ -7,6 +7,7 @@
 
 // 1. Cấp phát bộ nhớ thực tế cho biến dữ liệu toàn cục
 System_Data_t current_sys_data = {0};
+volatile uint8_t oled_hold_seconds = 0;
 
 // 2. Cấp phát các Handle
 osMutexId_t   		oledMutexHandle 	= NULL;

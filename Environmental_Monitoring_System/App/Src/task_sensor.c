@@ -2,6 +2,7 @@
 #include "app_main.h"
 #include "bme280.h"
 #include "adc_sensor.h"
+#include <stdint.h>
 
 extern I2C_HandleTypeDef hi2c1;
 extern ADC_HandleTypeDef hadc1;
