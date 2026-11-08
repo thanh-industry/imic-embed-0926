@@ -3,17 +3,6 @@
   ******************************************************************************
   * @file           : main.h
   * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -31,39 +20,56 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "spi_w25qxx.h" // Thêm thư viện driver chip nhớ SPI
+// KHÔNG include các file driver ở đây để tránh vòng lặp include (Circular Dependency)
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
-/* Định nghĩa chân CS (Chip Select) cho chip W25Qxx */
-/* Lưu ý: Nếu mạch thật của bạn nối chân CS vào chân khác, hãy sửa lại GPIOC và GPIO_PIN_4 */
+
+/* ==========================================================
+ * ĐỊNH NGHĨA CHÂN GPIO CHO CÁC NGOẠI VI
+ * ========================================================== */
+
+/* 1. Chip nhớ SPI (W25Qxx) - Chân CS */
 #define W25Q_CS_PORT  GPIOC
 #define W25Q_CS_PIN   GPIO_PIN_4
+
+/* 2. LED RGB - Chân điều khiển */
+#define LED_PORT      GPIOD
+#define LED_RED_PIN   GPIO_PIN_12
+#define LED_GREEN_PIN GPIO_PIN_13
+#define LED_BLUE_PIN  GPIO_PIN_14
+
 /* USER CODE END Private defines */
+
+/* ==========================================================
+ * KHAI BÁO CÁC HANDLE NGOẠI VI TOÀN CỤC (Dùng chung)
+ * ========================================================== */
+extern ADC_HandleTypeDef hadc1;
+extern I2C_HandleTypeDef hi2c1;
+extern SPI_HandleTypeDef hspi1;
+extern SPI_HandleTypeDef hspi2;
+extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
 
 #ifdef __cplusplus
 }
