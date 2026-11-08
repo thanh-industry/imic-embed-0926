@@ -10,92 +10,57 @@
 #include "logging.h"
 #include "adc.h"
 #include "freertos.h"
+#include "spi_w25qxx.h"
+#include "i2c_bmp280.h"
+#include "i2c_oled_lcd.h"
 #include <string.h>
+#include <stdio.h>
+#include <math.h> // THÊM THƯ VIỆN NÀY ĐỂ DÙNG HÀM fabs()
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 extern UART_HandleTypeDef huart2;
+extern SPI_HandleTypeDef hspi1;
+extern I2C_HandleTypeDef hi2c1;
 
-/* Biến toàn cục chia sẻ dữ liệu */
 float g_current_voltage = 0.0f;
 float g_temperature     = 28.2f;
 uint8_t g_i2c_status    = 1;
 uint8_t g_spi_status    = 1;
 uint32_t g_system_tick  = 0;
 
-/* Khai báo Mutex */
 osMutexId_t uartMutexHandle;
 osMutexId_t dataMutexHandle;
 
-/* Cấu hình thuộc tính cho Mutex */
-const osMutexAttr_t uartMutex_attributes = {
-  .name = "uartMutex",
-  .attr_bits = osMutexPrioInherit
-};
-const osMutexAttr_t dataMutex_attributes = {
-  .name = "dataMutex",
-  .attr_bits = osMutexPrioInherit
-};
+const osMutexAttr_t uartMutex_attributes = { .name = "uartMutex", .attr_bits = osMutexPrioInherit };
+const osMutexAttr_t dataMutex_attributes = { .name = "dataMutex", .attr_bits = osMutexPrioInherit };
 
-/* Khai báo Queue */
 osMessageQueueId_t uartQueueHandle;
-const osMessageQueueAttr_t uartQueue_attributes = {
-  .name = "uartQueue"
-};
+const osMessageQueueAttr_t uartQueue_attributes = { .name = "uartQueue" };
 /* USER CODE END Variables */
 
-/* Definitions for adcTask */
+/* Task Attributes */
 osThreadId_t adcTaskHandle;
-const osThreadAttr_t adcTask_attributes = {
-  .name = "adcTask",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-/* Definitions for cmdTask */
+const osThreadAttr_t adcTask_attributes = { .name = "adcTask", .stack_size = 256 * 4, .priority = (osPriority_t) osPriorityNormal };
 osThreadId_t cmdTaskHandle;
-const osThreadAttr_t cmdTask_attributes = {
-  .name = "cmdTask",
-  .stack_size = 512 * 4, // 2KB
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-/* Definitions for sensorTask */
+const osThreadAttr_t cmdTask_attributes = { .name = "cmdTask", .stack_size = 512 * 4, .priority = (osPriority_t) osPriorityNormal };
 osThreadId_t sensorTaskHandle;
-const osThreadAttr_t sensorTask_attributes = {
-  .name = "sensorTask",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-/* Definitions for spiTask */
+const osThreadAttr_t sensorTask_attributes = { .name = "sensorTask", .stack_size = 512 * 4, .priority = (osPriority_t) osPriorityNormal }; // Đã tăng Stack
 osThreadId_t spiTaskHandle;
-const osThreadAttr_t spiTask_attributes = {
-  .name = "spiTask",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
+const osThreadAttr_t spiTask_attributes = { .name = "spiTask", .stack_size = 256 * 4, .priority = (osPriority_t) osPriorityNormal };
 
-/* Private function prototypes -----------------------------------------------*/
-/* USER CODE BEGIN FunctionPrototypes */
+/* Function Prototypes */
 void StartADCTask(void *argument);
 void StartCommandTask(void *argument);
 void StartSensorTask(void *argument);
 void StartSPITask(void *argument);
-/* USER CODE END FunctionPrototypes */
-
-void MX_FREERTOS_Init(void);
 
 void MX_FREERTOS_Init(void) {
-  // 1. Tạo Mutex TRƯỚC KHI tạo Task
   uartMutexHandle = osMutexNew(&uartMutex_attributes);
   dataMutexHandle = osMutexNew(&dataMutex_attributes);
-
-  // 2. Tạo Queue cho UART (Chứa tối đa 128 bytes)
   uartQueueHandle = osMessageQueueNew(128, sizeof(uint8_t), &uartQueue_attributes);
 
-  // 3. Tạo các Task
   adcTaskHandle = osThreadNew(StartADCTask, NULL, &adcTask_attributes);
   cmdTaskHandle = osThreadNew(StartCommandTask, NULL, &cmdTask_attributes);
   sensorTaskHandle = osThreadNew(StartSensorTask, NULL, &sensorTask_attributes);
@@ -104,130 +69,127 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Application */
 
-/* 1. ADCTask: Chuyên đọc điện áp định kỳ */
-void StartADCTask(void *argument)
-{
+/* 1. ADCTask: Đọc điện áp */
+void StartADCTask(void *argument) {
   LOG_I("[ADC] ADCTask started.");
-  for(;;)
-  {
-    // Đọc điện áp ra biến cục bộ trước (không giữ khóa trong lúc đọc ADC)
+  for(;;) {
     float temp_voltage = ADC_Read_Filtered_Voltage(10);
-
-    // Bắt đầu vùng tranh chấp (Critical Section) - Khóa dữ liệu
     osMutexAcquire(dataMutexHandle, osWaitForever);
     g_current_voltage = temp_voltage;
     g_system_tick++;
-    osMutexRelease(dataMutexHandle); // Mở khóa
-
+    osMutexRelease(dataMutexHandle);
     vTaskDelay(pdMS_TO_TICKS(500));
   }
 }
 
-/* 2. CommandTask: Xử lý tập lệnh UART (Sử dụng Queue thay vì Blocking) */
-void StartCommandTask(void *argument)
-{
+/* 2. CommandTask: Nhận lệnh UART */
+void StartCommandTask(void *argument) {
   uint8_t rx_byte;
   char cmd_buffer[32];
   uint8_t index = 0;
 
-  LOG_I("[CMD] CommandTask ready. Type: help, status, voltage, sensor, version");
+  LOG_I("[CMD] CommandTask ready. Go lenh va an Enter.");
 
-  for(;;)
-  {
-    // Chờ lấy 1 byte từ Queue. Nếu Queue rỗng, Task sẽ ngủ (Blocked).
-    // osWaitForever = chờ mãi mãi cho đến khi có dữ liệu.
-    if (osMessageQueueGet(uartQueueHandle, &rx_byte, NULL, osWaitForever) == osOK)
-    {
-      if(rx_byte == '\r' || rx_byte == '\n')
-      {
-        if(index > 0)
-        {
+  for(;;) {
+    if (osMessageQueueGet(uartQueueHandle, &rx_byte, NULL, osWaitForever) == osOK) {
+      if(rx_byte == '\r' || rx_byte == '\n') {
+        if(index > 0) {
           cmd_buffer[index] = '\0';
-          index = 0; // Reset buffer
-
-          // --- XỬ LÝ LỆNH ---
           if(strcmp(cmd_buffer, "help") == 0) {
-            LOG_I("  help    - Hien thi danh sach lenh");
-            LOG_I("  status  - Xem trang thai he thong");
-            LOG_I("  voltage - Xem dien ap ADC");
+            LOG_I("--- HELP ---");
+            LOG_I("  help, status, voltage");
           }
-          else if(strcmp(cmd_buffer, "status") == 0)
-          {
-            // Khóa dữ liệu để đọc an toàn
+          else if(strcmp(cmd_buffer, "status") == 0) {
             osMutexAcquire(dataMutexHandle, osWaitForever);
-            float local_v = g_current_voltage;
-            float local_t = g_temperature;
-            uint32_t local_tick = g_system_tick;
+            float local_v = g_current_voltage; float local_t = g_temperature;
+            uint32_t local_tick = g_system_tick; uint8_t local_spi = g_spi_status;
             osMutexRelease(dataMutexHandle);
 
-            // In ra ngoài vùng khóa để không làm nghẽn hệ thống
             LOG_I("=== System Status ===");
             LOG_I("Voltage     : %d.%02d V", (int)local_v, (int)((local_v - (int)local_v) * 100));
             LOG_I("Temperature : %d.%d C", (int)local_t, (int)((local_t - (int)local_t) * 10));
+            LOG_I("SPI Device  : %s", local_spi ? "OK" : "ERROR");
             LOG_I("System Tick : %lu", local_tick);
           }
-          else if(strcmp(cmd_buffer, "voltage") == 0)
-          {
+          else if(strcmp(cmd_buffer, "voltage") == 0) {
             osMutexAcquire(dataMutexHandle, osWaitForever);
             float local_v = g_current_voltage;
             osMutexRelease(dataMutexHandle);
-
-            LOG_I("[ADC] Voltage = %d.%02d V", (int)local_v, (int)((local_v - (int)local_v) * 100));
+            LOG_I("Voltage: %d.%02d V", (int)local_v, (int)((local_v - (int)local_v) * 100));
           }
-          else
-          {
-            LOG_W("Unknown command: '%s'", cmd_buffer);
+          else {
+            LOG_W("Unknown: '%s'", cmd_buffer);
           }
+          index = 0;
         }
       }
-      else if(index < sizeof(cmd_buffer) - 1)
-      {
+      else if (rx_byte == 0x08 || rx_byte == 0x7F) { // Backspace
+          if (index > 0) {
+              index--;
+              HAL_UART_Transmit(&huart2, (uint8_t*)"\b \b", 3, 10);
+          }
+      }
+      else if(index < sizeof(cmd_buffer) - 1) {
         cmd_buffer[index++] = rx_byte;
-        // Echo lại ký tự vừa nhận
         HAL_UART_Transmit(&huart2, &rx_byte, 1, 10);
       }
     }
   }
 }
 
-/* 3. SensorTask: Đọc cảm biến I2C định kỳ */
-void StartSensorTask(void *argument)
-{
+/* 3. SensorTask: Đọc cảm biến và hiển thị OLED (Bản tối ưu) */
+void StartSensorTask(void *argument) {
   LOG_I("[I2C] SensorTask started.");
-  for(;;)
-  {
-    float temp_val = 28.2f; // Giả lập đọc cảm biến
+
+  float last_temp = -100.0f;
+
+  for(;;) {
+    float temp_val = BMP280_ReadTemperature();
 
     osMutexAcquire(dataMutexHandle, osWaitForever);
     g_temperature = temp_val;
-    g_i2c_status = 1;
+    g_i2c_status = (temp_val > -40.0f && temp_val < 85.0f) ? 1 : 0;
     osMutexRelease(dataMutexHandle);
+
+    if (temp_val > -40.0f && temp_val < 85.0f) {
+        // Sử dụng hàm fabs() để tính giá trị tuyệt đối (đã include math.h)
+        if (fabs(temp_val - last_temp) > 0.1f) {
+            char buffer[20];
+            snprintf(buffer, sizeof(buffer), "Temp: %.1f C", temp_val);
+            OLED_ShowString(0, 2, buffer);
+            OLED_UpdateScreen();
+            last_temp = temp_val;
+        }
+    } else {
+        static uint8_t warn_count = 0;
+        if (warn_count < 3) {
+            LOG_W("Loi cam bien BMP280: %.1f", temp_val);
+            warn_count++;
+        }
+    }
 
     vTaskDelay(pdMS_TO_TICKS(2000));
   }
 }
 
-/* 4. SPITask: Kiểm tra thiết bị SPI định kỳ */
-void StartSPITask(void *argument)
-{
+/* 4. SPITask: Kiểm tra chip nhớ */
+void StartSPITask(void *argument) {
   LOG_I("[SPI] SPITask started.");
-  for(;;)
-  {
+  for(;;) {
+    uint32_t id = W25Q_ReadID();
     osMutexAcquire(dataMutexHandle, osWaitForever);
-    g_spi_status = 1;
+    if (id != 0x000000 && id != 0xFFFFFF) {
+        g_spi_status = 1;
+        LOG_I("[SPI] W25Q ID: 0x%06lX (OK)", id);
+    } else {
+        g_spi_status = 0;
+        LOG_W("[SPI] W25Q ID: 0x%06lX (ERROR)", id);
+    }
     osMutexRelease(dataMutexHandle);
-
     vTaskDelay(pdMS_TO_TICKS(5000));
   }
 }
 
-/* ===== HÀM HOOK BẮT LỖI ===== */
-void vApplicationMallocFailedHook(void) {
-    LOG_E("[FATAL] HET RAM (Heap)! Tang configTOTAL_HEAP_SIZE len!");
-    for(;;);
-}
-void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
-    LOG_E("[FATAL] TRAN STACK tai task: %s", pcTaskName);
-    for(;;);
-}
+void vApplicationMallocFailedHook(void) { LOG_E("[FATAL] HET RAM (Heap)!"); for(;;); }
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) { LOG_E("[FATAL] TRAN STACK tai task: %s", pcTaskName); for(;;); }
 /* USER CODE END Application */
