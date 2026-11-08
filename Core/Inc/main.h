@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "spi_w25qxx.h" // Thêm thư viện driver chip nhớ SPI
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -59,7 +59,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
-
+/* Định nghĩa chân CS (Chip Select) cho chip W25Qxx */
+/* Lưu ý: Nếu mạch thật của bạn nối chân CS vào chân khác, hãy sửa lại GPIOC và GPIO_PIN_4 */
+#define W25Q_CS_PORT  GPIOC
+#define W25Q_CS_PIN   GPIO_PIN_4
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
