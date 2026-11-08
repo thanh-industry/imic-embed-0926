@@ -7,9 +7,6 @@
 
 extern UART_HandleTypeDef huart2;
 
-#define CLI_BUFFER_SIZE		64
-#define CLI_PROMPT			"\r\n> "
-
 static uint8_t rx_byte = 0;
 
 /**

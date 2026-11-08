@@ -7,6 +7,9 @@ extern "C" {
 
 #include "cmsis_os2.h"
 
+#define CLI_BUFFER_SIZE		64
+#define CLI_PROMPT			"\r\n> "
+
 /**
  * @brief  Hàm thực thi Task CLI xử lý giao diện dòng lệnh UART
  * @param  argument: Con trỏ tham số (mặc định NULL)
