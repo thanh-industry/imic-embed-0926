@@ -85,6 +85,8 @@ typedef struct
 }	W25Q32_HandleTypedef;
 
 
+extern uint8_t test_flash_raw_id[4];
+
 //Functions Prototype
 
 	/**

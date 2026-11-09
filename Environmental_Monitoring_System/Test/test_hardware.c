@@ -7,21 +7,16 @@
 #include "bme280.h"
 #include "w25q32.h"
 #include "ssd1306.h"
+#include "ssd1306_fonts.h"   // Đổi chính xác tên file font ở đây
 
 #include <string.h>
-
-/* Khai báo extern font hiển thị cho OLED */
-#if __has_include("fonts.h")
-#include "fonts.h"
-#else
-extern SSD1306_Font_t Font_7x10;
-#endif
+#include <stdio.h>
 
 /* Khai báo extern các ngoại vi phần cứng từ main.c */
 extern ADC_HandleTypeDef hadc1;
 extern RTC_HandleTypeDef hrtc;
-extern I2C_HandleTypeDef hi2c1; /* Dành riêng cho BME280 */
-extern I2C_HandleTypeDef hi2c2; /* Dành riêng cho SSD1306 OLED */
+extern I2C_HandleTypeDef hi2c1;
+extern I2C_HandleTypeDef hi2c2;
 extern SPI_HandleTypeDef hspi1;
 
 /* --- BIẾN QUAN SÁT TRÊN LIVE EXPRESSIONS --- */
@@ -35,22 +30,19 @@ typedef struct {
 
 Hardware_Status_t hw_status = {0};
 
-/* 1. Biến ADC */
 volatile uint16_t test_adc_raw = 0;
 volatile float    test_adc_voltage = 0.0f;
 
-/* 2. Biến RTC */
 RTC_DateTime_t test_rtc_dt;
 char           test_rtc_str[RTC_STRING_BUFFER_SIZE];
 
-/* 3. Biến BME280 */
 uint8_t     test_bme_chip_id = 0;
 bme280_data test_bme_data = {0};
 
-/* 4. Biến Flash W25Q32 */
 uint8_t test_flash_tx[16] = "FLASH_TEST_OK!";
 uint8_t test_flash_rx[16] = {0};
 uint8_t test_flash_verify_ok = 0;
+uint8_t test_flash_init_ok = 0;
 
 void test_hardware_init(void)
 {
@@ -63,7 +55,7 @@ void test_hardware_init(void)
         hw_status.rtc_ok = 1;
     }
 
-    /* 3. Test BME280 (Giao tiếp qua I2C1 - Địa chỉ 0x76) */
+    /* 3. Test BME280 qua I2C1 */
     if (bme280_init(&hi2c1) == HAL_OK) {
         bme280_read_id(&hi2c1, &test_bme_chip_id);
         if (test_bme_chip_id == 0x60) {
@@ -71,9 +63,9 @@ void test_hardware_init(void)
         }
     }
 
-    /* 4. Test W25Q32 (Giao tiếp qua SPI1) */
-    if (w25q32_init(&hspi1, SPI1_CS_GPIO_Port, SPI1_CS_Pin) == HAL_OK) {
-        /* Xóa sector 0 -> Ghi chuỗi kiểm tra -> Đọc lại đối soát */
+    /* 4. Test W25Q32 qua SPI1 (PA4) */
+    if (w25q32_init(&hspi1, GPIOA, GPIO_PIN_4) == HAL_OK) {
+    	test_flash_init_ok = 1; // Đánh dấu đã nhận diện được Chip ID
         w25q32_erase_sector(0x000000);
         w25q32_write(0x000000, test_flash_tx, sizeof(test_flash_tx));
         w25q32_read(0x000000, test_flash_rx, sizeof(test_flash_rx));
@@ -84,14 +76,12 @@ void test_hardware_init(void)
         }
     }
 
-    /* 5. Test SSD1306 OLED (Giao tiếp qua I2C2) */
+    /* 5. Test SSD1306 OLED qua I2C2 */
     if (ssd1306_init(&hi2c2) == HAL_OK) {
         hw_status.display_ok = 1;
         ssd1306_clear(SSD1306_COLOR_BLACK);
         ssd1306_set_cursor(0, 0);
-        #if __has_include("fonts.h")
         ssd1306_write_string("SYSTEM BRINGUP", Font_7x10, SSD1306_COLOR_WHITE);
-        #endif
         ssd1306_update_screen(&hi2c2);
     }
 }
@@ -109,13 +99,25 @@ void test_hardware_run(void)
     /* 3. Đọc dữ liệu môi trường từ BME280 qua I2C1 */
     sensor_get_vals(&hi2c1, &test_bme_data);
 
-    /* 4. Hiển thị RTC lên màn hình OLED qua I2C2 */
+    /* 4. Hiển thị thông số RTC và Điện áp lên OLED qua I2C2 */
     if (hw_status.display_ok) {
+        char buf[32];
         ssd1306_clear(SSD1306_COLOR_BLACK);
+
+        // Dòng 1: Thời gian RTC
         ssd1306_set_cursor(0, 0);
-        #if __has_include("fonts.h")
         ssd1306_write_string(test_rtc_str, Font_7x10, SSD1306_COLOR_WHITE);
-        #endif
+
+        // Dòng 2: Điện áp đo từ ADC
+        snprintf(buf, sizeof(buf), "Volt: %.2f V", test_adc_voltage);
+        ssd1306_set_cursor(0, 20);
+        ssd1306_write_string(buf, Font_7x10, SSD1306_COLOR_WHITE);
+
+        // Dòng 3: Nhiệt độ BME
+        snprintf(buf, sizeof(buf), "Temp: %.1f C", test_bme_data.temperature);
+        ssd1306_set_cursor(0, 40);
+        ssd1306_write_string(buf, Font_7x10, SSD1306_COLOR_WHITE);
+
         ssd1306_update_screen(&hi2c2);
     }
 

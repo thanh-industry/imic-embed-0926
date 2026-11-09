@@ -39,6 +39,8 @@ Test/test_hardware.o: ../Test/test_hardware.c ../Test/test_hardware.h \
  C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/rtc_time.h \
  C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/bme280.h \
  C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/w25q32.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306.h \
+ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306_fonts.h \
  C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306.h
 ../Test/test_hardware.h:
 ../Core/Inc/main.h:
@@ -82,4 +84,6 @@ C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/rtc_time.h:
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/bme280.h:
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/w25q32.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306.h:
+C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306_fonts.h:
 C:/Users/LENOVO/Desktop/imic-embed-0926/Environmental_Monitoring_System/Devices/Inc/ssd1306.h:
