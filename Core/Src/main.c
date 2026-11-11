@@ -51,6 +51,7 @@ void StartDefaultTask(void *argument);
 void MX_FREERTOS_Init(void);
 /* USER CODE END PFP */
 
+
 /**
   * @brief  The application entry point.
   */

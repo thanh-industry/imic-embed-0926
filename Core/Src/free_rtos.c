@@ -88,6 +88,7 @@ void StartCommandTask(void *argument) {
   char cmd_buffer[32];
   uint8_t index = 0;
 
+
   LOG_I("[CMD] CommandTask ready. Go lenh va an Enter.");
 
   for(;;) {

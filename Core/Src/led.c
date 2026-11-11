@@ -47,6 +47,7 @@ void LED_Green_On(void) {
     LED_WritePins(0, 1, 0);
 }
 
+
 /**
  * @brief  Bật Xanh dương, tắt 2 màu còn lại.
  */

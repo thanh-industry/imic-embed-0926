@@ -75,6 +75,7 @@ void Log_Print(LogLevel_t level, const char *file, int line, const char *format,
     msg_len = vsnprintf(msg_buf, sizeof(msg_buf), format, args);
     va_end(args);
 
+
     // === BẢO VỆ UART BẰNG MUTEX (Chống đè chữ khi nhiều Task cùng in) ===
     if (uartMutexHandle != NULL && osMutexAcquire(uartMutexHandle, osWaitForever) == osOK)
     {

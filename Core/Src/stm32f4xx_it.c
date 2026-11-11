@@ -111,6 +111,7 @@ void MemManage_Handler(void)
   }
 }
 
+
 /**
   * @brief This function handles Pre-fetch fault, memory access fault.
   */

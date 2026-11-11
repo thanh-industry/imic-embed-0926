@@ -15,6 +15,7 @@ typedef struct {
     int16_t  dig_T3;
 } BMP280_CalibData_t;
 
+
 /* Khai báo các hàm Driver */
 void BMP280_Init(I2C_HandleTypeDef *hi2c);
 float BMP280_ReadTemperature(void);

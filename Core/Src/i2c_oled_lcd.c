@@ -148,6 +148,7 @@ void OLED_UpdateScreen(void) {
     }
 }
 
+
 // Hiển thị chuỗi ký tự
 void OLED_ShowString(uint8_t x, uint8_t y, char* str) {
     uint8_t i = 0;

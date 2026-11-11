@@ -55,7 +55,6 @@ uint32_t W25Q_ReadID(void) {
 uint8_t W25Q_ReadStatus(void) {
     uint8_t tx[2] = {W25Q_READ_STATUS1, 0}; // Lệnh Read Status (0x05) + 1 byte rác
     uint8_t rx[2] = {0};
-
     W25Q_Select();
     HAL_SPI_TransmitReceive(w25q_spi, tx, rx, 2, 100);
     W25Q_Deselect();

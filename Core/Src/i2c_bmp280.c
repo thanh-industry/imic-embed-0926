@@ -27,6 +27,7 @@ void BMP280_Init(I2C_HandleTypeDef *hi2c) {
     else if (HAL_I2C_Master_Transmit(bmp_i2c, 0x77 << 1, &cmd, 1, 50) == HAL_OK) bmp_addr = 0x77;
     else { LOG_E("[BMP280] Khong tim thay!"); return; }
 
+
     // Đọc Calib
     cmd = BMP280_REG_CALIB;
     HAL_I2C_Master_Transmit(bmp_i2c, bmp_addr << 1, &cmd, 1, 50);

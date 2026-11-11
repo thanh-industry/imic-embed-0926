@@ -21,6 +21,7 @@ extern "C" {
 #define W25Q_SECTOR_SIZE      4096
 #define W25Q_PAGE_SIZE        256
 
+
 /* ID */
 #define W25Q32_ID             0xEF4016
 

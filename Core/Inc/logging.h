@@ -32,6 +32,7 @@ uint16_t Log_Available(void);              // Kiểm tra có bao nhiêu byte tro
 uint8_t Log_Read(void);                    // Đọc 1 byte từ bộ đệm
 
 // Các Macro tiện ích
+
 #define LOG_D(fmt, ...) do { if (CURRENT_LOG_LEVEL <= LOG_LEVEL_DEBUG) \
                             Log_Print(LOG_LEVEL_DEBUG, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
                             } while(0)

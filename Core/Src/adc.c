@@ -68,6 +68,7 @@ float ADC_Read_Voltage(void)
   */
 float ADC_Read_Filtered_Voltage(uint8_t samples)
 {
+
     if (samples == 0)
     {
         samples = 1; // tránh chia cho 0

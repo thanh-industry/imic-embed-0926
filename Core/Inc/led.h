@@ -48,6 +48,7 @@ void LED_Red_On(void);
  */
 void LED_Green_On(void);
 
+
 /**
  * @brief  Bật màu Xanh dương, tắt 2 màu còn lại.
  */

@@ -78,6 +78,7 @@ void *_sbrk(ptrdiff_t incr)
 
   return (void *)prev_heap_end;
 }
+
 #if defined(__PICOLIBC__)
   // Picolibc expects syscalls without the leading underscore.
   // This creates a strong alias so that

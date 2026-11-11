@@ -8,12 +8,14 @@ extern "C" {
 
 #include <stdint.h>
 
+
 /* ===== Biến toàn cục chia sẻ giữa các Task ===== */
 extern float    g_current_voltage;   /* Điện áp ADC đọc được (V) */
 extern float    g_temperature;       /* Nhiệt độ cảm biến I2C (°C) */
 extern uint8_t  g_i2c_status;        /* 1: OK, 0: ERROR */
 extern uint8_t  g_spi_status;        /* 1: OK, 0: ERROR */
 extern uint32_t g_system_tick;       /* Số lần ADC task chạy */
+
 
 /* ===== Khai báo các Task ===== */
 void StartADCTask(void *argument);
