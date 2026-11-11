@@ -1,2 +1,3 @@
-../App/Src/task_cli.c:18:6:HAL_UART_RxCpltCallback	2
-../App/Src/task_cli.c:31:6:StartCliTask	9
+../App/Src/task_cli.c:12:6:HAL_UART_RxCpltCallback	2
+../App/Src/task_cli.c:27:6:HAL_UART_ErrorCallback	2
+../App/Src/task_cli.c:38:6:StartCliTask	9

@@ -9,23 +9,30 @@ extern UART_HandleTypeDef huart2;
 
 static uint8_t rx_byte = 0;
 
-/**
-  * @brief  Rx Transfer completed callbacks.
-  * @param  huart  Pointer to a UART_HandleTypeDef structure that contains
-  *                the configuration information for the specified UART module.
-  * @retval None
-  */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  /* Prevent unused argument(s) compilation warning */
   if(huart->Instance == USART2)
   {
-	  osMessageQueuePut(uartQueueHandle, &rx_byte, 0U, 0U);
-	  HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
+      /* Bật cố định đèn Xanh Dương (SET) thay vì Toggle để dễ quan sát */
+      HAL_GPIO_WritePin(GPIOD, BLUE_LED_Pin, GPIO_PIN_SET);
+
+      osMessageQueuePut(uartQueueHandle, &rx_byte, 0U, 0U);
+
+      /* Bắt buộc mở khóa huart trước khi gọi lại Receive_IT để không bị HAL_BUSY */
+      __HAL_UNLOCK(huart);
+      HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
   }
-  /* NOTE: This function should not be modified, when the callback is needed,
-           the HAL_UART_RxCpltCallback could be implemented in the user file
-   */
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+  if(huart->Instance == USART2)
+  {
+      /* Xóa cờ lỗi Overrun (ORE) khi gửi chuỗi nhanh và mở lại ngắt nhận */
+      __HAL_UART_CLEAR_OREFLAG(huart);
+      __HAL_UNLOCK(huart);
+      HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
+  }
 }
 
 void StartCliTask(void *argument)
@@ -44,6 +51,8 @@ void StartCliTask(void *argument)
 	HAL_UART_Transmit(&huart2, (uint8_t *)welcome, strlen(welcome), 100);
 	HAL_UART_Transmit(&huart2, 	(uint8_t *)CLI_PROMPT, strlen(CLI_PROMPT), 100);
 
+	__HAL_UART_CLEAR_OREFLAG(&huart2);
+	__HAL_UNLOCK(&huart2);
 	HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
 
     for (;;)

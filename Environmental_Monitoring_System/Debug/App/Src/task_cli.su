@@ -1,2 +1,3 @@
-../App/Src/task_cli.c:18:6:HAL_UART_RxCpltCallback	16	static
-../App/Src/task_cli.c:31:6:StartCliTask	96	static
+../App/Src/task_cli.c:12:6:HAL_UART_RxCpltCallback	16	static
+../App/Src/task_cli.c:27:6:HAL_UART_ErrorCallback	24	static
+../App/Src/task_cli.c:38:6:StartCliTask	104	static

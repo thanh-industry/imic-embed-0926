@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "test_hardware.h"
+#include "app_main.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,7 +57,7 @@ osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* USER CODE BEGIN PV */
 
@@ -119,7 +119,7 @@ int main(void)
   MX_ADC1_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-  test_hardware_init();
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -147,6 +147,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  app_init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -162,7 +163,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  test_hardware_run();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -533,11 +533,12 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-////  /* Infinite loop */
-////  for(;;)
-////  {
-////    osDelay(1);
-////  }
+  /* Infinite loop */
+  for(;;)
+  {
+	  HAL_GPIO_TogglePin(GPIOD, GREEN_LED_Pin);
+	  osDelay(1000);
+  }
   /* USER CODE END 5 */
 }
 
