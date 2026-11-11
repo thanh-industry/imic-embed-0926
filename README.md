@@ -36,6 +36,7 @@
 | `sensor` | Show BMP280 temperature only |
 | `version` | Show firmware version |
 
+
 ## 4. Project Structure
 
 ```text
