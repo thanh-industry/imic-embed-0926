@@ -69,14 +69,18 @@ void StartCliTask(void *argument)
     				cmd_buffer[cmd_index] = '\0';
 
     				// 1. Chiếm Mutex trước khi Parser vẽ lên màn hình OLED qua I2C2
-					osMutexAcquire(oledMutexHandle, osWaitForever);
+    				if (osMutexAcquire(oledMutexHandle, 500) == osOK)
+    				{
+    				    cli_parser_process(cmd_buffer);
+    				    osMutexRelease(oledMutexHandle);
+    				    oled_hold_seconds = 5;
+    				}
 
-    				cli_parser_process(cmd_buffer);
-
-    				// 2. Nhả Mutex ngay sau khi lệnh vẽ hoàn tất
-					osMutexRelease(oledMutexHandle);
-
-					oled_hold_seconds = 5; // Giữ màn hình kết quả CLI trong 5 giây
+    				else
+    				{
+    				    const char *busy = "\r\n[Warn] OLED/I2C2 dang ban, bo qua lenh!\r\n";
+    				    HAL_UART_Transmit(&huart2, (uint8_t *)busy, strlen(busy), 50);
+    				}
 
     				cmd_index  = 0;
     				memset(cmd_buffer, 0, sizeof(cmd_buffer));

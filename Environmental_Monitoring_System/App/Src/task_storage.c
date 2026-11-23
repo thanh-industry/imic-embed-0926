@@ -10,7 +10,7 @@ void StartFlashTask(void *argument)
     uint32_t current_write_addr = STORAGE_START_ADDR;
     HAL_StatusTypeDef status;
 
-    /* 1. Khởi tạo chip nhớ W25Q32 qua SPI1 (CS: PA4) */
+    /* 1. Khởi tạo chip nhớ W25Q32 */
     status = w25q32_init(&hspi1, GPIOA, GPIO_PIN_4);
     if (status == HAL_OK)
     {
@@ -39,7 +39,7 @@ void StartFlashTask(void *argument)
                     /* Nhảy sang đầu Sector kế tiếp */
                     current_write_addr = current_write_addr - offset_in_sector + W25Q32_SECTOR_SIZE;
 
-                    /* Kiểm tra giới hạn vùng nhớ (10 Sector) để quay vòng (Ring Buffer) */
+                    /* Kiểm tra giới hạn vùng nhớ (10 Sector) để quay vòng */
                     if (current_write_addr >= (STORAGE_START_ADDR + 10 * W25Q32_SECTOR_SIZE))
                     {
                         current_write_addr = STORAGE_START_ADDR;
@@ -54,6 +54,6 @@ void StartFlashTask(void *argument)
                 current_write_addr += sizeof(System_Data_t);
             }
         }
-        /* Tuyệt đối không để osDelay ở đây để tránh task bị ngủ đông */
+
     }
 }
