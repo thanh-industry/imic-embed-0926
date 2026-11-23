@@ -7,7 +7,6 @@
   */
 /* USER CODE END Header */
 
-
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MAIN_H
 #define __MAIN_H
@@ -61,16 +60,6 @@ void Error_Handler(void);
 #define LED_BLUE_PIN  GPIO_PIN_14
 
 /* USER CODE END Private defines */
-
-/* ==========================================================
- * KHAI BÁO CÁC HANDLE NGOẠI VI TOÀN CỤC (Dùng chung)
- * ========================================================== */
-extern ADC_HandleTypeDef hadc1;
-extern I2C_HandleTypeDef hi2c1;
-extern SPI_HandleTypeDef hspi1;
-extern SPI_HandleTypeDef hspi2;
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart3;
 
 #ifdef __cplusplus
 }

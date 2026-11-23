@@ -1,13 +1,14 @@
+/* i2c_oled_lcd.c */
 #include "i2c_oled_lcd.h"
 #include <string.h>
 
-static I2C_HandleTypeDef *oled_i2c = NULL;
-static uint8_t OLED_Buffer[128 * 8]; // Bộ đệm 1024 byte
+#define OLED_WIDTH            128U
+#define OLED_PAGES            8U
+#define OLED_I2C_TIMEOUT_MS   50U
 
-/* ==========================================================
- * BẢNG FONT CHỮ 5x7 (Rút gọn cho các ký tự cơ bản)
- * Mỗi ký tự gồm 5 byte, tương ứng 5 cột pixel.
- * ========================================================== */
+static I2C_HandleTypeDef *s_oled_i2c = NULL;
+static uint8_t            s_OLED_Buffer[OLED_WIDTH * OLED_PAGES];
+
 static const uint8_t Font5x7[][5] = {
     {0x00, 0x00, 0x00, 0x00, 0x00}, // Space (32)
     {0x00, 0x00, 0x5F, 0x00, 0x00}, // !
@@ -102,66 +103,87 @@ static const uint8_t Font5x7[][5] = {
     {0x44, 0x64, 0x54, 0x4C, 0x44}, // z
 };
 
-/* ==========================================================
- * CÁC HÀM ĐIỀU KHIỂN OLED
- * ========================================================== */
-
-// Gửi lệnh (Command) tới OLED
-static void OLED_WriteCmd(uint8_t cmd) {
-    uint8_t data[2] = {0x00, cmd};
-    HAL_I2C_Master_Transmit(oled_i2c, OLED_ADDR, data, 2, 100);
+static HAL_StatusTypeDef OLED_WriteCmd(uint8_t cmd) {
+    if (s_oled_i2c == NULL) {
+        return HAL_ERROR;
+    }
+    return HAL_I2C_Mem_Write(s_oled_i2c, OLED_ADDR, 0x00U, I2C_MEMADD_SIZE_8BIT,
+                             &cmd, 1U, OLED_I2C_TIMEOUT_MS);
 }
 
-// Khởi tạo màn hình
 void OLED_Init(I2C_HandleTypeDef *hi2c) {
-    oled_i2c = hi2c;
-    HAL_Delay(100);
+    s_oled_i2c = hi2c;
+    if (s_oled_i2c == NULL) {
+        return;
+    }
 
-    OLED_WriteCmd(0xAE); // Tắt màn hình
-    OLED_WriteCmd(0x20); OLED_WriteCmd(0x00); // Chế độ địa chỉ ngang
-    OLED_WriteCmd(0xB0); // Bắt đầu từ Page 0
-    OLED_WriteCmd(0xC8); // Quét COM ngược
-    OLED_WriteCmd(0xA1); // Đảo cột
-    OLED_WriteCmd(0x8D); OLED_WriteCmd(0x14); // Bật Charge Pump
-    OLED_WriteCmd(0xAF); // Bật màn hình
+    HAL_Delay(100U);
+
+    if (OLED_WriteCmd(0xAEU) != HAL_OK) {
+        return;
+    }
+    (void)OLED_WriteCmd(0x20U);
+    (void)OLED_WriteCmd(0x00U);
+    (void)OLED_WriteCmd(0xB0U);
+    (void)OLED_WriteCmd(0xC8U);
+    (void)OLED_WriteCmd(0xA1U);
+    (void)OLED_WriteCmd(0x8DU);
+    (void)OLED_WriteCmd(0x14U);
+    (void)OLED_WriteCmd(0xAFU);
 
     OLED_Clear();
     OLED_UpdateScreen();
 }
 
-// Xóa toàn bộ bộ đệm
 void OLED_Clear(void) {
-    memset(OLED_Buffer, 0, sizeof(OLED_Buffer));
+    (void)memset(s_OLED_Buffer, 0, sizeof(s_OLED_Buffer));
 }
 
-// Cập nhật bộ đệm ra màn hình
 void OLED_UpdateScreen(void) {
-    for (uint8_t i = 0; i < 8; i++) {
-        OLED_WriteCmd(0xB0 + i);
-        OLED_WriteCmd(0x00);
-        OLED_WriteCmd(0x10);
+    uint8_t page;
 
-        uint8_t data[129];
-        data[0] = 0x40; // Data control byte
-        memcpy(&data[1], &OLED_Buffer[128 * i], 128);
-        HAL_I2C_Master_Transmit(oled_i2c, OLED_ADDR, data, 129, 100);
+    if (s_oled_i2c == NULL) {
+        return;
+    }
+
+    for (page = 0U; page < OLED_PAGES; page++) {
+        if ((OLED_WriteCmd((uint8_t)(0xB0U + page)) != HAL_OK) ||
+            (OLED_WriteCmd(0x00U) != HAL_OK) ||
+            (OLED_WriteCmd(0x10U) != HAL_OK)) {
+            return;
+        }
+
+        if (HAL_I2C_Mem_Write(s_oled_i2c, OLED_ADDR, 0x40U, I2C_MEMADD_SIZE_8BIT,
+                              &s_OLED_Buffer[OLED_WIDTH * page],
+                              OLED_WIDTH, OLED_I2C_TIMEOUT_MS) != HAL_OK) {
+            return;
+        }
     }
 }
 
+void OLED_ShowString(uint8_t x, uint8_t y, const char *str) {
+    uint8_t  i = 0U;
+    uint8_t  j;
+    uint8_t  char_index;
+    uint16_t col;
 
-// Hiển thị chuỗi ký tự
-void OLED_ShowString(uint8_t x, uint8_t y, char* str) {
-    uint8_t i = 0;
+    if ((str == NULL) || (y >= OLED_PAGES)) {
+        return;
+    }
+
     while (str[i] != '\0') {
-        if (str[i] >= 32 && str[i] <= 122) {
-            uint8_t char_index = str[i] - 32;
-            for (uint8_t j = 0; j < 5; j++) {
-                if ((x + i * 6 + j) < 128 && y < 8) {
-                    OLED_Buffer[(x + i * 6 + j) + (y * 128)] = Font5x7[char_index][j];
+        if ((str[i] >= 32) && (str[i] <= 122)) {
+            char_index = (uint8_t)(str[i] - 32);
+            for (j = 0U; j < 5U; j++) {
+                col = (uint16_t)x + ((uint16_t)i * 6U) + (uint16_t)j;
+                if (col < OLED_WIDTH) {
+                    s_OLED_Buffer[col + ((uint16_t)y * OLED_WIDTH)] = Font5x7[char_index][j];
                 }
             }
         }
         i++;
-        if (x + i * 6 > 122) break;
+        if (((uint16_t)x + ((uint16_t)i * 6U)) > (OLED_WIDTH - 6U)) {
+            break;
+        }
     }
 }
